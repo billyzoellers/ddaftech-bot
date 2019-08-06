@@ -12,6 +12,7 @@
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.5.0",
     "botkit-plugin-cms": "^1.0.2",
-    "dotenv": "^7.0.0"
+    "dotenv": "^7.0.0",
+    "meraki": "^1.1.0"
   }
 }
