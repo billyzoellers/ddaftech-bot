@@ -26,10 +26,7 @@ if (process.env.MONGO_URI) {
 
 
 const adapter = new WebexAdapter({
-    // REMOVE THIS OPTION AFTER YOU HAVE CONFIGURED YOUR APP!
-    enable_incomplete: true,
-
-    
+    secret: process.env.SECRET,
     access_token: process.env.access_token,
     public_address: process.env.public_address
 })    
