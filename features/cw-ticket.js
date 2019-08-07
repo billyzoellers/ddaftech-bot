@@ -8,6 +8,7 @@ module.exports = function(controller) {
     controller.hears(new RegExp(/^\/cw ticket ([0-9]*?)$/),'message,direct_message', async(bot, message) => {
         
         let ticketId = message.matches[1];
+        console.log('/cw-ticket.js: requested ticket ' + ticketId);
         
         // Connect to CW API
         const ConnectWiseRest = require('connectwise-rest');
@@ -29,8 +30,9 @@ module.exports = function(controller) {
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
-        text += "<br><strong>Assignee:</strong> " + ticket.owner.name + " (" + ticket.board.name + ")";
-        
+        if (ticket.owner) {
+            text += "<br><strong>Assignee:</strong> " + ticket.owner.name + " (" + ticket.board.name + ")";
+        }
 
         if (serviceNotes) {
             text += "<hr>"
@@ -66,6 +68,8 @@ module.exports = function(controller) {
         let ticketId = message.matches[1];
         let operation = message.matches[2];
         
+        console.log('/cw-ticket.js: requested ticket ' + ticketId + " operation " + operation);
+        
         // Connect to CW API
         const ConnectWiseRest = require('connectwise-rest');
         const cw = new ConnectWiseRest({
@@ -86,8 +90,9 @@ module.exports = function(controller) {
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
-        text += "<br><strong>Assignee:</strong> " + ticket.owner.name + " (" + ticket.board.name + ")";
-        
+        if (ticket.owner) {
+            text += "<br><strong>Assignee:</strong> " + ticket.owner.name + " (" + ticket.board.name + ")";
+        }        
 
         if (serviceNotes) {
             text += "<hr>"
