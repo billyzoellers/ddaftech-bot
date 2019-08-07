@@ -42,8 +42,7 @@ module.exports = function(controller) {
     controller.hears(new RegExp(/^\/cw help$/),'message,direct_message', async(bot, message) => {
         
         var text = "**ConnectWise tools**<br />You must have a ConnectWise account to use these commands. Many of these commands will result in live (client facing) changes being made to ConnectWise. *Proceed with caution*.";
-        text += "<hr />Check back soon for more commands.";
-        // text += "<hr />`/cw ticket <ticket-number>` - get information about a ticket";
+        text += "<hr />`/cw ticket <ticket-number>` - get information about a ticket";
         
         await bot.reply(message, {markdown: text});
         
