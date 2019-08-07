@@ -12,8 +12,8 @@ module.exports = function(controller) {
        console.log("meraki-snapshot.js: heard snapshot with no camera specified");
        
        let text = "You need to specify a camera.";
-       text += "\n `snapshot <camera name>`: shows a snapshot of a Meraki camera";
-       await bot.reply(message,text);
+       text += "<br />`snapshot <camera name>`: shows a snapshot of a Meraki camera";
+       await bot.reply(message,{markdown: text});
        
     // controller 
     });
