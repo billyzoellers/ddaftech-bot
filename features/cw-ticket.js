@@ -110,7 +110,7 @@ module.exports = function(controller) {
                 },
                 {
                     "title": "Assigned to",
-                    "value": await returnTicketAsignee(ticket)
+                    "value": returnTicketAsignee(ticket)
                 }
             ]
         });
@@ -219,8 +219,11 @@ module.exports = function(controller) {
             }
         }
         
-        await bot.reply(message, {markdown: text, attachments: card_attach});
-        
+        try {
+            await bot.reply(message, {markdown: text, attachments: card_attach});
+        } catch(e) {
+            console.error(e);
+        }
     // controller
     });
 
