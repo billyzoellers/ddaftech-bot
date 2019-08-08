@@ -10,6 +10,10 @@ module.exports = function(controller) {
         let ticketId = message.matches[1];
         let operation = message.matches[2];
         
+        if (operation == "details" || operation =="d") {
+            operation = "detail";
+        }
+        
         console.log('/cw-ticket.js: requested ticket ' + ticketId + ' operation ' + operation);
         
         // Connect to CW API
@@ -24,70 +28,98 @@ module.exports = function(controller) {
             logger: (level, text, meta) => { } // optional, pass in logging function
         });
         
+        // Make API requests for ticket data
         try {
             var ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(ticketId);
         }catch(e) {
-            console.error(e)
+            console.error(e);
         }
-
-        let serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId);
         
+        try {
+            var serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId);
+        }catch(e) {
+            console.error(e);
+        }
+        
+        // Create the text version of the message
         let text = "<blockquote><h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
         
         text += "<strong>Status:</strong> " + ticket.status.name;
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
-        if (ticket.owner) {
-            text += "<br><strong>Assignee:</strong> " + ticket.owner.name + " (" + ticket.board.name + ")";
-        }
-
-        if (serviceNotes) {
-            text += "<hr>"
-            
-            let note = serviceNotes[0];
-            
-            let formattedNote = note.text.replace(/\n/g, '<br>')
-
-            if (note.contact) {
-                text += "<strong>" + note.contact.name + " on " + dateToHumanReadable(new Date(note.dateCreated)) + "</strong>";
-            }
-            if (note.member) {
-                text += "<strong>" + note.member.name + " on " + dateToHumanReadable(new Date(note.dateCreated)) + "</strong>";
-            }
-            if (note.internalFlag) {
-                // internal note
-            }
-            
-            text += "<blockquote>" + formattedNote + "</blockquote>";
-        }
+        text += "<br><strong>Assignee:</strong> " + await returnTicketAsignee(ticket);
         
         text += "</blockquote>";
-        
-        text += "For more details try <code>/cw ticket " + ticketId + " details</code>";
-        
-        // Create an adaptive card
-        let note = serviceNotes[0];
-        
-        var text_runs = [];
-        var noteText = note.text.split('\n');
-        for(let n of noteText) {
-            text_runs.push(
-                {
-                    "type": "TextRun",
-                    "text": n + "\n",
-                    "size": "Small"
+
+        if (serviceNotes) {
+            text += "<hr>";
+            
+            let i = 0;
+            do {
+                let formattedNote = serviceNotes[i].text.replace(/\n/g, '<br>');
+                
+                text += "<strong>" + returnNoteName(serviceNotes[i]) + " on " + dateToHumanReadable(new Date(serviceNotes[i].dateCreated)) + "</strong>";
+                
+                if (serviceNotes[i].internalFlag) {
+                    text += " [Internal Note]";
                 }
-            );
+                
+                text += "<blockquote>" + formattedNote + "</blockquote>";
+                
+                i++;
+                
+            } while(operation == "detail" && i < serviceNotes.length);
+            
+            if (operation != "detail") {
+                text += "For more details try <code>/cw ticket " + ticketId + " detail</code><br>";
+            }
         }
         
-        var rich_text_block = {
-            "type": "RichTextBlock",
-            "inlines": text_runs
-        }
+        text += "<small>This is the <em>mobile</em> version. For better formatting, use the Webex desktop or web client.</small>"
         
-        let card_ticket_columnset = {
+        // Create  the Adaptive Card version of the message
+        let card_body = [];
+        
+        // add title container
+        card_body.push({
             "type": "Container",
+            "style": "emphasis",
+            "bleed": true,
+            "items": [
+                {
+                    "type": "TextBlock",
+                    "text": "Ticket #" + ticket.id +  " - " + ticket.summary,
+                    "size": "Large",
+                    "weight": "Bolder"
+                }
+            ]
+        });
+        
+        // add ticket details
+        card_body.push({
+            "type": "FactSet",
+            "facts": [
+                {
+                    "title": "Status",
+                    "value": ticket.status.name.replace('>','')
+                },
+                {
+                    "title": "Requester",
+                    "value": "[" + ticket.contactName + "](" + ticket.contactEmailAddress + ") at " +  ticket.company.name
+                },
+                {
+                    "title": "Assigned to",
+                    "value": await returnTicketAsignee(ticket)
+                }
+            ]
+        });
+        
+        // add comments heading       
+        card_body.push({
+            "type": "Container",
+            "spacing": "Large",
+            "style": "emphasis",
             "items": [
                 {
                     "type": "ColumnSet",
@@ -97,123 +129,97 @@ module.exports = function(controller) {
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text":  dateToHumanReadable(new Date(note.dateCreated)),
-                                    "wrap": true,
-                                    "weight": "Bolder"
+                                    "weight": "Bolder",
+                                    "text": "DATE/TIME"
                                 }
                             ],
                             "width": 40
                         },
                         {
                             "type": "Column",
-                            "spacing": "Medium",
+                            "spacing": "Large",
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text": returnNoteName(note),
-                                    "wrap": true,
-                                    "weight": "Bolder"
+                                    "weight": "Bolder",
+                                    "text": "UPDATED BY"
                                 }
                             ],
                             "width": 60
                         }
                     ]
-                },
-                rich_text_block
-            ]
-        }
-    
-        // iterate through all service notes if operation == detail, otherwise only first
+                }
+            ],
+            "bleed": true
+        });
+        
+        // create line for each ticket comment, or first ticket comment only
         let i = 0;
         do {
             
-            // need to write building of notes columnsets in here
+            card_body.push({
+                "type": "Container",
+                "separator": (i > 0 ? true : false), // separator on all subsequent lines
+                "items": [
+                    {
+                        "type": "ColumnSet",
+                        "columns": [
+                            {
+                                "type": "Column",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text":  dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
+                                        "wrap": true,
+                                        "weight": "Bolder"
+                                    }
+                                ],
+                                "width": 40
+                            },
+                            {
+                                "type": "Column",
+                                "spacing": "Medium",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": returnNoteName(serviceNotes[i]),
+                                        "wrap": true,
+                                        "weight": "Bolder"
+                                    }
+                                ],
+                                "width": 60
+                            }
+                        ]
+                    },
+                    {
+                        "type": "RichTextBlock",
+                        "inlines": [
+                                        {
+                                "type": "TextRun",
+                                "text": serviceNotes[i].text,
+                                "size": "Small"
+                            }
+                        ]
+                    }
+                ]
+            });
             
             i++;
         } while (operation == "detail" && i < serviceNotes.length);
         
-        
-        
-        let card = {
+              
+        // add headers to card before attaching
+        let card_attach = {
             "contentType": "application/vnd.microsoft.card.adaptive",
             "content": {
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                 "type": "AdaptiveCard",
                 "version": "1.0",
-                "body": [
-                    {
-                        "type": "Container",
-                        "style": "emphasis",
-                        "bleed": true,
-                        "items": [
-                            {
-                                "type": "TextBlock",
-                                "text": "Ticket #" + ticket.id +  " - " + ticket.summary,
-                                "size": "Large",
-                                "weight": "Bolder"
-                            }
-                        ]
-                    },
-                    {
-                        "type": "FactSet",
-                        "facts": [
-                            {
-                                "title": "Status",
-                                "value": ticket.status.name
-                            },
-                            {
-                                "title": "Requester",
-                                "value": "[" + ticket.contactName + "](" + ticket.contactEmailAddress + ") at " +  ticket.company.name
-                            },
-                            {
-                                "title": "Assigned to",
-                                "value": returnTicketAsignee(ticket)
-                            }
-                        ]
-                    },
-                    {
-                        "type": "Container",
-                        "spacing": "Large",
-                        "style": "emphasis",
-                        "items": [
-                            {
-                                "type": "ColumnSet",
-                                "columns": [
-                                    {
-                                        "type": "Column",
-                                        "items": [
-                                            {
-                                                "type": "TextBlock",
-                                                "weight": "Bolder",
-                                                "text": "DATE/TIME"
-                                            }
-                                        ],
-                                        "width": 40
-                                    },
-                                    {
-                                        "type": "Column",
-                                        "spacing": "Large",
-                                        "items": [
-                                            {
-                                                "type": "TextBlock",
-                                                "weight": "Bolder",
-                                                "text": "UPDATED BY"
-                                            }
-                                        ],
-                                        "width": 60
-                                    }
-                                ]
-                            }
-                        ],
-                        "bleed": true
-                    },
-                    card_ticket_columnset
-                ]
+                "body": card_body
             }
         }
         
-        
-        await bot.reply(message, {markdown: text, attachments: card});
+        await bot.reply(message, {markdown: text, attachments: card_attach});
         
     // controller
     });
