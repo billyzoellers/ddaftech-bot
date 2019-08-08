@@ -58,7 +58,146 @@ module.exports = function(controller) {
         
         text += "For more details try <code>/cw ticket " + ticketId + " details</code>";
         
-        await bot.reply(message, {markdown: text});
+        // Create an adaptive card
+        let note = serviceNotes[0];
+        
+        var text_runs = [];
+        var noteText = note.text.split('\n');
+        for(let n of noteText) {
+            text_runs.push(
+                {
+                    "type": "TextRun",
+                    "text": n + "\n",
+                    "size": "Small"
+                }
+            );
+        }
+        
+        var rich_text_block = {
+            "type": "RichTextBlock",
+            "inlines": text_runs
+        }
+        
+        let card_ticket_columnset = {
+            "type": "Container",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text":  dateToHumanReadable(new Date(note.dateCreated)),
+                                    "wrap": true,
+                                    "weight": "Bolder"
+                                }
+                            ],
+                            "width": 40
+                        },
+                        {
+                            "type": "Column",
+                            "spacing": "Medium",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": returnNoteName(note),
+                                    "wrap": true,
+                                    "weight": "Bolder"
+                                }
+                            ],
+                            "width": 60
+                        }
+                    ]
+                },
+                rich_text_block
+            ]
+        }
+    
+        
+        
+        
+        let card = {
+            "contentType": "application/vnd.microsoft.card.adaptive",
+            "content": {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.0",
+                "body": [
+                    {
+                        "type": "Container",
+                        "style": "emphasis",
+                        "bleed": true,
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Ticket #" + ticket.id +  " - " + ticket.summary,
+                                "size": "Large",
+                                "weight": "Bolder"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "FactSet",
+                        "facts": [
+                            {
+                                "title": "Status",
+                                "value": ticket.status.name
+                            },
+                            {
+                                "title": "Requester",
+                                "value": "[" + ticket.contactName + "](" + ticket.contactEmailAddress + ") at " +  ticket.company.name
+                            },
+                            {
+                                "title": "Assigned to",
+                                "value": returnTicketAsignee(ticket)
+                            }
+                        ]
+                    },
+                    {
+                        "type": "Container",
+                        "spacing": "Large",
+                        "style": "emphasis",
+                        "items": [
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "weight": "Bolder",
+                                                "text": "DATE/TIME"
+                                            }
+                                        ],
+                                        "width": 40
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "spacing": "Large",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "weight": "Bolder",
+                                                "text": "UPDATED BY"
+                                            }
+                                        ],
+                                        "width": 60
+                                    }
+                                ]
+                            }
+                        ],
+                        "bleed": true
+                    },
+                    card_ticket_columnset
+                ]
+            }
+        }
+        
+        
+        await bot.reply(message, {markdown: text, attachments: card});
         
     // controller
     });
@@ -122,7 +261,7 @@ module.exports = function(controller) {
         }
         
         text += "</blockquote>";
-        
+
         await bot.reply(message, {markdown: text});
         
     // controller
@@ -135,7 +274,37 @@ function dateToHumanReadable(date) {
     
     date.setHours(date.getHours() - 4);
     
-    let humanReadable = df(date, "ddd, mmmm dS, yyyy h:MM TT");
+    let humanReadable = df(date, "ddd, m/d/yy h:MM TT");
     
     return humanReadable
+}
+
+/*
+ * Takes a ServiceNote and returns a contact or member name
+ */
+function returnNoteName(note) {
+    if (note.contact) {
+        return note.contact.name;
+    } else if (note.member) {
+        return note.member.name;
+    }
+    
+    return "Unspecified Name"
+}
+
+/*
+ * Takes a Ticket and returns an assignee and serviceboard
+ */
+function returnTicketAsignee(ticket) {
+    let text = "";
+    
+    if (ticket.owner && !(ticket.owner.name == "undefined")) {
+        text += ticket.owner.name + " ";
+    }
+    
+    if (ticket.board) {
+        text += "[" + ticket.board.name + "]";
+    }
+    
+    return text;
 }
