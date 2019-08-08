@@ -117,6 +117,14 @@ module.exports = function(controller) {
             ]
         }
     
+        // iterate through all service notes if operation == detail, otherwise only first
+        let i = 0;
+        do {
+            
+            // need to write building of notes columnsets in here
+            
+            i++;
+        } while (operation == "detail" && i < serviceNotes.length);
         
         
         
