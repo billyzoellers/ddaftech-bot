@@ -58,7 +58,7 @@ module.exports = function(controller) {
             await bot.reply(message,text);
             
             // Now send the snapshot
-            await sleep(4000);
+            await sleep(5000);
             await bot.reply(message,{files:[snapshotUrl.url]});
             
         } else {
