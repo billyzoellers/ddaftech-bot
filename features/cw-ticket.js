@@ -10,7 +10,7 @@ module.exports = function(controller) {
         let ticketId = message.matches[1];
         let operation = message.matches[2];
         
-        if (operation == "details" || operation =="d") {
+        if (operation == "details" || operation == "d") {
             operation = "detail";
         }
         
@@ -32,13 +32,27 @@ module.exports = function(controller) {
         try {
             var ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(ticketId);
         }catch(e) {
+            console.log("cw-ticket.js: error on getTicketById with ticketId " + ticketId);
             console.error(e);
+            
+            let text = "Sorry, I'm having trouble with that." + "<em> "
+            text += e.message + " (" + e.code + ")</em>"
+            await bot.reply(message, {markdown: text});
+        
+            return;
         }
         
         try {
             var serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId);
         }catch(e) {
+            console.log("cw-ticket.js: error on getServiceNotes with ticketId " + ticketId);
             console.error(e);
+            
+            let text = "Sorry, I'm having trouble with that." + "<em> "
+            text += e.message + " (" + e.code + ")</em>"
+            await bot.reply(message, {markdown: text});
+        
+            return;
         }
         
         // Create the text version of the message
