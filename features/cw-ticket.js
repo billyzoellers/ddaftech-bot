@@ -17,13 +17,19 @@ module.exports = function(controller) {
         const cw = new ConnectWiseRest({
             companyId: process.env.CW_COMPANY,
             companyUrl: 'connectwise.deandorton.com',
+            clientId: process.env.CW_CLIENTID,
             publicKey: process.env.CW_PUBLIC_KEY,
             privateKey: process.env.CW_PRIVATE_KEY,
             debug: false,               // optional, enable debug logging
             logger: (level, text, meta) => { } // optional, pass in logging function
         });
         
-        let ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(ticketId);
+        try {
+            var ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(ticketId);
+        }catch(e) {
+            console.error(e)
+        }
+
         let serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId);
         
         let text = "<blockquote><h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
