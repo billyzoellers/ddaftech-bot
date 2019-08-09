@@ -43,6 +43,8 @@ module.exports = function(controller) {
         
         var text = "**ConnectWise tools**<br />You must have a ConnectWise account to use these commands. Many of these commands will result in live (client facing) changes being made to ConnectWise. *Proceed with caution*.";
         text += "<hr />`/cw ticket <ticket-number>` - get information about a ticket";
+        text += "<br />`/cw mytickets` - get 10 recently updated tickets";
+        text += "<br />`/cw mytickets <username>` - get 10 recently updated tickets for specific user";
         
         await bot.reply(message, {markdown: text});
         
