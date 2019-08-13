@@ -94,6 +94,7 @@ module.exports = function(controller) {
         
         // Create  the Adaptive Card version of the message
         let card_body = [];
+        let history_body = [];
         
         // add title container
         card_body.push({
@@ -130,7 +131,7 @@ module.exports = function(controller) {
         });
         
         // add comments heading       
-        card_body.push({
+        history_body.push({
             "type": "Container",
             "spacing": "Large",
             "style": "emphasis",
@@ -171,7 +172,7 @@ module.exports = function(controller) {
         let i = 0;
         do {
             
-            card_body.push({
+            history_body.push({
                 "type": "Container",
                 "separator": (i > 0 ? true : false), // separator on all subsequent lines
                 "items": [
@@ -221,6 +222,61 @@ module.exports = function(controller) {
             i++;
         } while (operation == "detail" && i < serviceNotes.length);
         
+        card_body.push({
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Show " + (operation == 'detail' ? "full history" : "initial description"),
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "body": history_body,
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    }
+                },
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Add comment",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "Input.Text",
+                                "id": "cw_add_comment",
+                                "placeholder": "Add your comment..",
+                                "isMultiline": true
+                            },
+                            {
+                                "type": "Input.ChoiceSet",
+                                "id": "cw_comment_visibility",
+                                "choices": [
+                                    {
+                                        "title": "Public - not enabled",
+                                        "value": "private"
+                                    },
+                                    {
+                                        "title": "Private",
+                                        "value": "private"
+                                    }
+                                ]
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.Submit",
+                                "title": "Send",
+                                "data": {
+                                    "id": "submit_cw_add_comment",
+                                    "ticketId": ticket.id
+                                }
+                            }
+                        ],
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    },
+                    "style": "positive"
+                }
+            ]
+        });
               
         // add headers to card before attaching
         let card_attach = {
@@ -232,11 +288,12 @@ module.exports = function(controller) {
                 "body": card_body
             }
         }
-        
+
         try {
             await bot.reply(message, {markdown: text, attachments: card_attach});
         } catch(e) {
             console.error(e);
+        
         }
     // controller
     });

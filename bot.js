@@ -81,5 +81,6 @@ controller.webserver.get('/', (req, res) => {
  * Temporary additional webhook for Adaptive Card responses
  */
 controller.ready(async function() {
+   
     await controller.adapter.registerAdaptiveCardWebhookSubscription('/api/messages');
 });
