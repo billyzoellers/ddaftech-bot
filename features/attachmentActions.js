@@ -48,6 +48,7 @@ module.exports = function(controller) {
                 text: message.inputs.cw_add_comment,
                 internalAnalysisFlag: (message.inputs.cw_comment_visibility == "private" ? true : false),
                 detailDescriptionFlag: (message.inputs.cw_comment_visibility == "public" ? true : false),
+                processNotifications: (message.inputs.cw_comment_visibility == "public" ? true : false),
                 member: {
                     id: cwPerson.id
                 }
