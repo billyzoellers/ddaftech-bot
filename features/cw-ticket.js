@@ -5,7 +5,7 @@
 
 module.exports = function(controller) {
 
-    controller.hears(new RegExp(/^\/cw[\s|a-z]*(\d+)(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
+    controller.hears(new RegExp(/^\/cw(?:\s|ticket)*(\d+)(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
         
         let ticketId = message.matches[1];
         let operation = message.matches[2];
