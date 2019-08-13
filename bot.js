@@ -19,8 +19,8 @@ require('dotenv').config();
 
 let storage = null;
 if (process.env.MONGO_URI) {
-    storage = mongoStorage = new MongoDbStorage({
-        url : process.env.MONGO_URI,
+    storage = new MongoDbStorage({
+        url: process.env.MONGO_URI,
     });
 }
 
@@ -37,7 +37,7 @@ const controller = new Botkit({
 
     adapter: adapter,
 
-    storage
+    storage: storage
 });
 
 if (process.env.cms_uri) {
@@ -84,3 +84,19 @@ controller.ready(async function() {
    
     await controller.adapter.registerAdaptiveCardWebhookSubscription('/api/messages');
 });
+
+/*
+ * Database for storing custom information
+
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://127.0.0.1:27017/ddaftech-bot', {useNewUrlParser: true});
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  
+  // schema for notification
+    var notificationSchema = new mongoose.Schema({
+      name: String
+    });
+});
+ */

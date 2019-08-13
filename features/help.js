@@ -22,7 +22,6 @@ module.exports = function(controller) {
     controller.hears(['about','who are you','who'],'message,direct_message', async(bot, message) => {
         
         var text = "Hello! I am ddaftech@webex.bot! I live in the lab at Sterlington Rd, and I only respond if you have an @ddaftech.com e-mail address.<br />I can `help` with many technology related issues.";
-        
         await bot.reply(message, {markdown: text});
         
     // controller

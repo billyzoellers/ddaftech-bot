@@ -60,7 +60,8 @@ module.exports = function(controller) {
                 
                 console.log(newServiceNote);
                 
-                var text = person.firstName + " " + person.lastName + " added a note to ticket #" + message.inputs.ticketId; 
+                var text = person.firstName + " " + person.lastName + " added a note to ticket #" + message.inputs.ticketId;
+                text += "<blockquote>" + newServiceNote.text + "</blockquote>";
                 
             }catch(e) {
                 console.log("attachmentAction.js: error on createServiceNote with ticketId " + message.inputs.ticketId);
