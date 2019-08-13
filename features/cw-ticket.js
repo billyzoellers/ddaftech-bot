@@ -251,12 +251,12 @@ module.exports = function(controller) {
                                 "id": "cw_comment_visibility",
                                 "choices": [
                                     {
-                                        "title": "Private",
-                                        "value": "private"
-                                    },
-                                    {
                                         "title": "Public (send to client)",
                                         "value": "public"
+                                    },
+                                    {
+                                        "title": "Private",
+                                        "value": "private"
                                     }
                                 ]
                             }
