@@ -251,10 +251,6 @@ module.exports = function(controller) {
                                 "id": "cw_comment_visibility",
                                 "choices": [
                                     {
-                                        "title": "Public - not enabled",
-                                        "value": "private"
-                                    },
-                                    {
                                         "title": "Private",
                                         "value": "private"
                                     }
