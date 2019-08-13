@@ -4,6 +4,8 @@
  */
 
 module.exports = function(controller) {
+    
+    const tools = require('../tools/connectwise');
 
     controller.hears(new RegExp(/^\/cw mytickets(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
         
@@ -193,7 +195,7 @@ module.exports = function(controller) {
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text": formatStatus(ticketList[i].status.name),
+                                        "text": tools.formatStatus(ticketList[i].status.name),
                                         "wrap": false,
                                         "weight": "Lighter",
                                         "size": "Small",
@@ -239,28 +241,4 @@ module.exports = function(controller) {
     // controller
     });
 
-}
-
-function dateToHumanReadable(date) {
-    let df = require ('dateformat');
-    
-    date.setHours(date.getHours() - 4);
-    
-    let humanReadable = df(date, "ddd, m/d/yy h:MM TT");
-    
-    return humanReadable
-}
-
-/*
- * Takes a Ticket and returns an assignee and serviceboard
- */
-function formatStatus(status) {
-    
-    let str = status.replace('>','')
-    
-    if (status == "Customer Updated") {
-        return "Updated";
-    }
-    
-    return str;
 }

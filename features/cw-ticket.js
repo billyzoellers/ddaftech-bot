@@ -4,6 +4,8 @@
  */
 
 module.exports = function(controller) {
+    
+    const tools = require('../tools/connectwise');
 
     controller.hears(new RegExp(/^\/cw(?:\s|ticket)*(\d+)(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
         
@@ -62,7 +64,7 @@ module.exports = function(controller) {
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
-        text += "<br><strong>Assignee:</strong> " + await returnTicketAsignee(ticket);
+        text += "<br><strong>Assignee:</strong> " + await tools.returnTicketAssignee(ticket);
         
         text += "</blockquote>";
 
@@ -73,7 +75,7 @@ module.exports = function(controller) {
             do {
                 let formattedNote = serviceNotes[i].text.replace(/\n/g, '<br>');
                 
-                text += "<strong>" + returnNoteName(serviceNotes[i]) + " on " + dateToHumanReadable(new Date(serviceNotes[i].dateCreated)) + "</strong>";
+                text += "<strong>" + tools.returnNoteName(serviceNotes[i]) + " on " + tools.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)) + "</strong>";
                 
                 if (serviceNotes[i].internalFlag) {
                     text += " [Internal Note]";
@@ -125,7 +127,7 @@ module.exports = function(controller) {
                 },
                 {
                     "title": "Assigned to",
-                    "value": returnTicketAsignee(ticket)
+                    "value": tools.returnTicketAssignee(ticket)
                 }
             ]
         });
@@ -184,7 +186,7 @@ module.exports = function(controller) {
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text":  dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
+                                        "text":  tools.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
                                         "wrap": true,
                                         "weight": "Bolder"
                                     }
@@ -197,7 +199,7 @@ module.exports = function(controller) {
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text": returnNoteName(serviceNotes[i]),
+                                        "text": tools.returnNoteName(serviceNotes[i]),
                                         "wrap": true,
                                         "weight": "Bolder"
                                     }
@@ -298,44 +300,4 @@ module.exports = function(controller) {
     // controller
     });
 
-}
-
-function dateToHumanReadable(date) {
-    let df = require ('dateformat');
-    
-    date.setHours(date.getHours() - 4);
-    
-    let humanReadable = df(date, "ddd, m/d/yy h:MM TT");
-    
-    return humanReadable
-}
-
-/*
- * Takes a ServiceNote and returns a contact or member name
- */
-function returnNoteName(note) {
-    if (note.contact) {
-        return note.contact.name;
-    } else if (note.member) {
-        return note.member.name;
-    }
-    
-    return "Unspecified Name"
-}
-
-/*
- * Takes a Ticket and returns an assignee and serviceboard
- */
-function returnTicketAsignee(ticket) {
-    let text = "";
-    
-    if (ticket.owner && !(ticket.owner.name == "undefined")) {
-        text += ticket.owner.name + " ";
-    }
-    
-    if (ticket.board) {
-        text += "[" + ticket.board.name + "]";
-    }
-    
-    return text;
 }
