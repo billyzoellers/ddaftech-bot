@@ -76,8 +76,11 @@ module.exports = {
      *      Output: {(String)markdown, (String)card_attachment}
      */
      getMessageForTicket: async function (ticketId,options) {
+         
+        console.log(options);
         
-        let operation = options;
+        let operation = options.operation;
+        let action = options.action;
          
         // create API connection
         const ConnectWiseRest = require('connectwise-rest');
@@ -119,10 +122,32 @@ module.exports = {
             throw(e);
         }
         
-        // Create the text version of the message
-        let text = "<blockquote><h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
+        var actionText;
+        if (action) {
+            
+            switch(action) {
+              case 'updated':
+                actionText = "TICKET UPDATED";
+                break;
+              case 'added':
+                actionText = "NEW TICKET";
+                break;
+              default:
+                actionText = action;
+            }
+        }
         
-        text += "<strong>Status:</strong> " + ticket.status.name;
+        
+        // Create the text version of the message
+        let text;
+        
+        if (action) {
+            text += "<h4>Alert: " + action + " ticket</h4>"
+        }
+        
+        text += "<h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
+        
+        text += "<blockquote><strong>Status:</strong> " + ticket.status.name;
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
@@ -130,6 +155,7 @@ module.exports = {
         
         text += "</blockquote>";
 
+        /* no notes on mobile version
         if (serviceNotes) {
             text += "<hr>";
             
@@ -153,12 +179,29 @@ module.exports = {
                 text += "For more details try <code>/cw ticket " + ticketId + " detail</code><br>";
             }
         }
+        */
         
-        text += "<small>This is the <em>mobile</em> version. For better formatting, use the Webex desktop or web client.</small>"
+        text += "<small>This is the <em>mobile</em> version. Ticket details are available on the desktop version.</small>"
         
         // Create  the Adaptive Card version of the message
         let card_body = [];
         let history_body = [];
+        
+        if (action) {
+            
+            card_body.push({
+                "type": "Container",
+                "items": [
+                    {
+                        "type": "TextBlock",
+                        "text": actionText,
+                        "size": "Large",
+                        "weight": "Bolder",
+                        "color": "attention"
+                    }
+                ]
+            });
+        }
         
         // add title container
         card_body.push({
@@ -353,7 +396,7 @@ module.exports = {
             }
         }
         
-        return { text, card_attach };
+        return { text, card_attach, ticket };
     // end of getMessageForTicket    
      }
 };

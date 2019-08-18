@@ -93,13 +93,49 @@ controller.webserver.post('/cw', async (req,res) => {
     res.status(200);
     res.send('ok');
     
-    console.log("got /cw webhook for ticketId " + req.body.ticketId);
-    let ticketId = req.body.ticketId;
+    // get the callback data, and X-Content-Signature from headers
+    let callback = req.body;
+    let callbackXContentSignature = req.headers['x-content-signature'];
     
-    let bot = await controller.spawn();
+    // establish API connection to verify callback
+    const ConnectWiseRest = require('connectwise-rest');
+    const cw = new ConnectWiseRest({
+        companyId: process.env.CW_COMPANY,
+        companyUrl: 'connectwise.deandorton.com',
+        clientId: process.env.CW_CLIENTID,
+        publicKey: process.env.CW_PUBLIC_KEY,
+        privateKey: process.env.CW_PRIVATE_KEY,
+        debug: false,               // optional, enable debug logging
+        logger: (level, text, meta) => { } // optional, pass in logging function
+    });
+    
+    // if signature matches in callback
+    if (await cw.utils.Callback.verifyCallback(callback,callbackXContentSignature) == false) {
+        console.error('POST /cw webhook ERROR unable to verify. Request below');
+        console.log(req);
+        
+        return;
+    }
+    
+    if (callback.FromUrl != "connectwise.deandorton.com") {
+        console.error('POST /cw webhook ERROR verified but sourced from wrong domain. Request below');
+        console.log(req);
+        
+        return;
+    }
+    
+    let ticketId = callback.ID;
+    let action = callback.Action;
+    console.log("POST /cw webhook verified for ticketId " + ticketId + " with action " + action);
+    
+    // do not send trigger on specific actions
+    if (action == "deleted" || action == "updated") {
+        console.log("POST /cw webhook not firing message for action " + action);
+        return;
+    }
 
-    controller.trigger('ticket_webhook', bot, ticketId);
-    
+    let bot = await controller.spawn();
+    controller.trigger('ticket_webhook', bot, {ticketId, action});
     
 });
 
