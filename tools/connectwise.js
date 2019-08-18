@@ -76,9 +76,7 @@ module.exports = {
      *      Output: {(String)markdown, (String)card_attachment}
      */
      getMessageForTicket: async function (ticketId,options) {
-         
-        console.log(options);
-        
+
         let operation = options.operation;
         let action = options.action;
          
