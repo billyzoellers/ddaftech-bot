@@ -60,7 +60,7 @@ module.exports = function(controller) {
         
         } catch (e) {
                         
-            let text = "Error posting notification: " + e.message + ".";
+            let text = "Sorry, I wasn't able to help with that. " + e.message + ".";
             await bot.say({markdown: text});
         }
 

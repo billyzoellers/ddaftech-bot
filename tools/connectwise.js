@@ -101,8 +101,17 @@ module.exports = {
             throw(e);
         }
         
+        let params;
+        
+        if (operation == "detail") {
+          params = {
+              "orderby": "dateCreated desc"
+            }
+        }
+        
         try {
-            var serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId);
+            var serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId,params);
+
         }catch(e) {
             console.log("cw-ticket.js: error on getServiceNotes with ticketId " + ticketId);
             console.error(e);
