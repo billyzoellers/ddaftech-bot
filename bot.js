@@ -86,6 +86,24 @@ controller.ready(async function() {
 });
 
 /*
+ * Recieve ConnectWise webhooks
+ */
+controller.webserver.post('/cw', async (req,res) => {
+    
+    res.status(200);
+    res.send('ok');
+    
+    console.log("got /cw webhook for ticketId " + req.body.ticketId);
+    let ticketId = req.body.ticketId;
+    
+    let bot = await controller.spawn();
+
+    controller.trigger('ticket_webhook', bot, ticketId);
+    
+    
+});
+
+/*
  * Database for storing custom information
 
 var mongoose = require('mongoose');
