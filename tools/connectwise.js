@@ -139,10 +139,10 @@ module.exports = {
         
         
         // Create the text version of the message
-        let text;
+        let text = "";
         
         if (action) {
-            text += "<h4>Alert: " + action + " ticket</h4>"
+            text += "<h3>" + actionText + "</h3>"
         }
         
         text += "<h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
