@@ -42,6 +42,7 @@ module.exports = function(controller) {
         let roomId;
         if (notify.length == 1) {
             roomId = notify[0].room_id;
+            console.log("Found RoomId in DB for CompanyId " + roomId);
         } else {
             if (process.env.SECRET) {
                 roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vYzA0NzU4YjAtYzIwZi0xMWU5LTkzY2EtZDU3ZGM5ZTc5NjY5";
@@ -49,8 +50,7 @@ module.exports = function(controller) {
                 roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vMjE4NDliYWYtZDg0OS0zOTY2LWI1NzEtNmEzYjA3MTA4ZDFj";
             }
         }
-        
-        console.log(roomId);
+
         await bot.startConversationInRoom(roomId);
     
         // send the message
