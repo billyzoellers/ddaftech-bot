@@ -101,19 +101,30 @@ module.exports = function(controller) {
             text = "Notifications already exist for this room for the following companies:<br><ul>";
             
             for (let i = 0; i < notify.length; i++) { 
-                let c;
-                        
-                try {
-                    c = await cw.CompanyAPI.Companies.getCompanyById(notify[i].company_id);
-        
-                }catch(e) {
-                    console.log("cw-notify.js: error on getCompaniesById with ID " + notify[i].company_id);
-                    console.error(e);
+                let name;
                 
-                    throw(e);
+                if (notify.company_id) {
+                    // if a company ID is defined
+                    
+                    try {
+                        var c = await cw.CompanyAPI.Companies.getCompanyById(notify[i].company_id);
+            
+                    }catch(e) {
+                        console.log("cw-notify.js: error on getCompaniesById with ID " + notify[i].company_id);
+                        console.error(e);
+                    
+                        throw(e);
+                    }
+                    
+                    name = c.name;
+                    
+                } else if (notify.board_id) {
+                    name = "Board ID " + notify.board_id;
+                } else {
+                    name = "<em>Fallback Notifications</em>";
                 }
                 
-              text += "<li>" + c.name + "</li>";
+              text += "<li>" + name + "</li>";
             }
             text += "</ul>";
             
