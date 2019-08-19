@@ -31,24 +31,30 @@ module.exports = function(controller) {
         console.log("CompanyId: " + company_id + " " + response.ticket.company.name);
         console.log("BoardId: " + board_id + " " + response.ticket.board.name);
         console.log("StatusId: " + status_id + " " + response.ticket.status.name);
-        
-        // DB
+
+        /* DB search
+         * 
+         */
         var Notification = require('mongoose').model('Notification')
+        let roomId = null;
+        let searchParam = [];
         
-        // find entry with matching company ID
-        let notify = await Notification.find({ company_id: company_id })
+        searchParam[0] = { company_id: company_id };
+        searchParam[1] = { company_id: null, board_id: board_id };
+        searchParam[2] = { company_id: null, board_id: null };
         
-        // got a DB response
-        let roomId;
-        if (notify.length == 1) {
-            roomId = notify[0].room_id;
-            console.log("Found RoomId in DB for CompanyId " + roomId);
-        } else {
-            if (process.env.SECRET) {
-                roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vYzA0NzU4YjAtYzIwZi0xMWU5LTkzY2EtZDU3ZGM5ZTc5NjY5";
-            } else {
-                roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vMjE4NDliYWYtZDg0OS0zOTY2LWI1NzEtNmEzYjA3MTA4ZDFj";
+        for (let i = 0; i < 2 && !roomId; i++) { 
+            let search = await Notification.find(searchParam[i]);
+            
+            if (search.length == 1) {
+                console.log("/cw-ticket.js: matched Notification for " + searchParam[i]);
+                roomId = search[0].room_id;
             }
+        }
+        
+        if (!roomId) {
+            console.log("/cw-ticket.js: no match for Notification, not sending message");
+            return;
         }
 
         await bot.startConversationInRoom(roomId);
