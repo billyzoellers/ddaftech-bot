@@ -103,7 +103,7 @@ module.exports = function(controller) {
             for (let i = 0; i < notify.length; i++) { 
                 let name;
                 
-                if (notify.company_id) {
+                if (notify[i].company_id) {
                     // if a company ID is defined
                     
                     try {
@@ -118,8 +118,8 @@ module.exports = function(controller) {
                     
                     name = c.name;
                     
-                } else if (notify.board_id) {
-                    name = "Board ID " + notify.board_id;
+                } else if (notify[i].board_id) {
+                    name = "Board ID " + notify[i].board_id;
                 } else {
                     name = "<em>Fallback Notifications</em>";
                 }
