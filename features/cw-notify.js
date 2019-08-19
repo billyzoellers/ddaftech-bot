@@ -119,7 +119,7 @@ module.exports = function(controller) {
                     name = c.name;
                     
                 } else if (notify[i].board_id) {
-                    name = "Board ID " + notify[i].board_id;
+                    name = "<em>Fallback Board ID " + notify[i].board_id + "</em>";
                 } else {
                     name = "<em>Fallback Notifications</em>";
                 }
