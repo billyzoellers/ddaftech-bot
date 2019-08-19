@@ -18,9 +18,9 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 require('dotenv').config();
 
 let storage = null;
-if (process.env.MONGO_URI) {
+if (process.env.MONGO_URL) {
     storage = new MongoDbStorage({
-        url: process.env.MONGO_URI,
+        url: process.env.MONGO_URL,
     });
 }
 
@@ -35,7 +35,7 @@ const adapter = new WebexAdapter({
  * Database for storing custom information
  */
 var mongoose = require('mongoose');
-mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true});
+mongoose.connect(process.env.MONGO_URL, {useNewUrlParser: true});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -49,13 +49,7 @@ db.once('open', function() {
       created_by_user_id: String
     });
     
-    const Notification = mongoose.model('Notification', {
-      company_id: String,
-      board_id: String,
-      status_id: String,
-      room_id: String,
-      created_by_user_id: String
-    });
+    const Notification = mongoose.model('Notification', notificationSchema);
 });
 
 const controller = new Botkit({
