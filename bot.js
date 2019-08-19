@@ -31,6 +31,32 @@ const adapter = new WebexAdapter({
     public_address: process.env.public_address
 })    
 
+/*
+ * Database for storing custom information
+ */
+var mongoose = require('mongoose');
+mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true});
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  
+  // schema for notification
+    var notificationSchema = new mongoose.Schema({
+      company_id: String,
+      board_id: String,
+      status_id: String,
+      room_id: String,
+      created_by_user_id: String
+    });
+    
+    const Notification = mongoose.model('Notification', {
+      company_id: String,
+      board_id: String,
+      status_id: String,
+      room_id: String,
+      created_by_user_id: String
+    });
+});
 
 const controller = new Botkit({
     webhook_uri: '/api/messages',
@@ -68,12 +94,8 @@ controller.ready(() => {
 
 });
 
-
-
 controller.webserver.get('/', (req, res) => {
-
     res.send(`This app is running Botkit ${ controller.version }.`);
-
 });
 
 
@@ -81,7 +103,6 @@ controller.webserver.get('/', (req, res) => {
  * Temporary additional webhook for Adaptive Card responses
  */
 controller.ready(async function() {
-   
     await controller.adapter.registerAdaptiveCardWebhookSubscription('/api/messages');
 });
 
@@ -138,19 +159,3 @@ controller.webserver.post('/cw', async (req,res) => {
     controller.trigger('ticket_webhook', bot, {ticketId, action});
     
 });
-
-/*
- * Database for storing custom information
-
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://127.0.0.1:27017/ddaftech-bot', {useNewUrlParser: true});
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  
-  // schema for notification
-    var notificationSchema = new mongoose.Schema({
-      name: String
-    });
-});
- */

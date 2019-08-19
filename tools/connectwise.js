@@ -145,7 +145,7 @@ module.exports = {
         
         text += "<h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
         
-        text += "<blockquote><strong>Status:</strong> " + ticket.status.name;
+        text += "<blockquote><strong>Status:</strong> " + ticket.status.name.replace('>','');
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
         
@@ -396,5 +396,15 @@ module.exports = {
         
         return { text, card_attach, ticket };
     // end of getMessageForTicket    
+     },
+     
+     /*
+     * formatTicketToMessage(ticketId,options) -> takes a CW ticket ID, and returns a formatted message to be sent back.
+     *
+     *      Input: (String)
+     *      Output: {(String)markdown, (String)card_attachment}
+     */
+     formatTicketToMessage: async function (ticket) {
+         
      }
 };

@@ -24,14 +24,6 @@ module.exports = function(controller) {
             var response = await tools.getMessageForTicket(ticketId, {operation, action});
         } catch (e) { return };
         
-        // TEMP: send tickets on the active bot to one room, and dev bot to another room
-        let roomId;
-        if (process.env.SECRET) {
-            roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vYzA0NzU4YjAtYzIwZi0xMWU5LTkzY2EtZDU3ZGM5ZTc5NjY5";
-        } else {
-            roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vMjE4NDliYWYtZDg0OS0zOTY2LWI1NzEtNmEzYjA3MTA4ZDFj";
-        }
-        
         let company_id = response.ticket.company.id;
         let board_id = response.ticket.board.id;
         let status_id = response.ticket.status.id;
@@ -40,6 +32,25 @@ module.exports = function(controller) {
         console.log("BoardId: " + board_id + " " + response.ticket.board.name);
         console.log("StatusId: " + status_id + " " + response.ticket.status.name);
         
+        // DB
+        var Notification = require('mongoose').model('Notification')
+        
+        // find entry with matching company ID
+        let notify = await Notification.find({ company_id: company_id })
+        
+        // got a DB response
+        let roomId;
+        if (notify.length == 1) {
+            roomId = notify[0].room_id;
+        } else {
+            if (process.env.SECRET) {
+                roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vYzA0NzU4YjAtYzIwZi0xMWU5LTkzY2EtZDU3ZGM5ZTc5NjY5";
+            } else {
+                roomId = "Y2lzY29zcGFyazovL3VzL1JPT00vMjE4NDliYWYtZDg0OS0zOTY2LWI1NzEtNmEzYjA3MTA4ZDFj";
+            }
+        }
+        
+        console.log(roomId);
         await bot.startConversationInRoom(roomId);
     
         // send the message
