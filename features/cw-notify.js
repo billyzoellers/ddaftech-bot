@@ -122,7 +122,7 @@ module.exports = function(controller) {
             text = "There are no notifications for this room."
             
         }
-        text += "<br>To add a new notification, use `/\cw notify <Company-Name>`"
+        text += "To add a new notification, use `/\cw notify <Company-Name>`"
         
         await bot.reply(message, {markdown: text});
         
