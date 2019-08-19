@@ -19,6 +19,7 @@ module.exports = function(controller) {
         }
         
         let input = message.matches[1];
+        console.log("/cw-notify.js: got request to add notification for " + input);
         
         // create API connection
         const ConnectWiseRest = require('connectwise-rest');
