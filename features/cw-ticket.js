@@ -43,7 +43,7 @@ module.exports = function(controller) {
         searchParam[1] = { company_id: null, board_id: board_id };
         searchParam[2] = { company_id: null, board_id: null };
         
-        for (let i = 0; i < 2 && !roomId; i++) { 
+        for (let i = 0; i < searchParam.length && !roomId; i++) { 
             let search = await Notification.find(searchParam[i]);
             
             if (search.length == 1) {
