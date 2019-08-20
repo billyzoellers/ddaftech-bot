@@ -276,7 +276,7 @@ module.exports = {
         // create line for each ticket comment, or first ticket comment only
         let i = 0;
         do {
-            
+
             history_body.push({
                 "type": "Container",
                 "separator": (i > 0 ? true : false), // separator on all subsequent lines
@@ -302,7 +302,7 @@ module.exports = {
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text": module.exports.returnNoteName(serviceNotes[i]),
+                                        "text": module.exports.returnNoteName(serviceNotes[i]) + (serviceNotes[i].internalAnalysisFlag ? " [Internal Note]" : ""),
                                         "wrap": true,
                                         "weight": "Bolder"
                                     }
