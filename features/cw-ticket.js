@@ -28,9 +28,7 @@ module.exports = function(controller) {
         let board_id = response.ticket.board.id;
         let status_id = response.ticket.status.id;
         
-        console.log("CompanyId: " + company_id + " " + response.ticket.company.name);
-        console.log("BoardId: " + board_id + " " + response.ticket.board.name);
-        console.log("StatusId: " + status_id + " " + response.ticket.status.name);
+        console.log("CompanyId: " + company_id + " " + response.ticket.company.name + " BoardId: " + board_id + " " + response.ticket.board.name + " StatusId: " + status_id + " " + response.ticket.status.name);
 
         /* DB search
          * 
@@ -47,7 +45,7 @@ module.exports = function(controller) {
             let search = await Notification.find(searchParam[i]);
             
             if (search.length == 1) {
-                console.log("/cw-ticket.js: matched Notification for " + searchParam[i]);
+                console.log("/cw-ticket.js: matched CompanyId " + searchParam[i].company_id + " BoardId " + searchParam[i].board_id);
                 roomId = search[0].room_id;
             }
         }
