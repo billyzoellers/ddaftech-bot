@@ -65,8 +65,6 @@ module.exports = function(controller) {
         var text = "I can't help with that. Try `help` to find out what I can do."
         
         await bot.reply(message, {markdown: text});
-        
-        console.log(message);
     });
 
 }
