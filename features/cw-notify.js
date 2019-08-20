@@ -143,7 +143,60 @@ module.exports = function(controller) {
     
     controller.hears('/cw notify','direct_message', async(bot, message) => {
     
-        let text = "Sorry, `/cw notify` is currently only available in group rooms.";
+        var Notification = require('mongoose').model('Notification');
+        let notify = await Notification.find();
+        
+        if (!notify) {
+            return;
+            
+        }
+        
+        // create API connection
+        const ConnectWiseRest = require('connectwise-rest');
+        const cw = new ConnectWiseRest({
+            companyId: process.env.CW_COMPANY,
+            companyUrl: 'connectwise.deandorton.com',
+            clientId: process.env.CW_CLIENTID,
+            publicKey: process.env.CW_PUBLIC_KEY,
+            privateKey: process.env.CW_PRIVATE_KEY,
+            debug: false,               // optional, enable debug logging
+            logger: (level, text, meta) => { } // optional, pass in logging function
+        });
+        
+        let text = "I can help you find which rooms notifications are going to. See below:<br><ul>"
+
+        for (let i = 0; i < notify.length; i++) {
+            text += "<li><strong>";
+            // notification scope
+            if (notify[i].company_id) {
+                let c = await cw.CompanyAPI.Companies.getCompanyById(notify[i].company_id);
+                
+                text += c.name
+            } else if (notify[i].board_id) {
+                let b = await cw.ServiceDeskAPI.Boards.getBoardById(notify[i].board_id);
+                
+                text += "<em>Fallback (Board)</em> " + b.name
+            } else {
+                text += "<em>Fallback (GLOBAL)</em>"
+            }
+            
+            text += ":</strong> ";
+            // teams team/room
+            let room = await bot.api.rooms.get(notify[i].room_id);
+            text += room.title;
+            
+            if (room.teamId) {
+
+                let team = await bot.api.teams.get(room.teamId);
+                
+                text += " in " + team.name
+            }
+            text += "</li>";
+        }
+        
+        text += "</ul>"
+        
+        text += "use <code>/cw notify</code> in a group room for more options";
         
         await bot.reply(message, {markdown: text});
     // controller 
