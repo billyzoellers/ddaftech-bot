@@ -12,13 +12,11 @@ module.exports = function(controller) {
         let ticketId = data.ticketId;
         let action = data.action;
         
-        let operation = "detail";
-        
         console.log('/cw-ticket.js: ticket_webhook for ticket ' + ticketId);
         
         // get a message from Connectwise
         try {
-            var response = await tools.getMessageForTicket(ticketId, {operation, action});
+            var response = await tools.getMessageForTicket(ticketId, {action});
         } catch (e) { return };
         
         let company_id = response.ticket.company.id;
@@ -67,21 +65,16 @@ module.exports = function(controller) {
     controller.hears(new RegExp(/^\/cw(?:\s|ticket)*(\d+)(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
         
         let ticketId = message.matches[1];
-        let operation = message.matches[2];
         
-        if (operation == "details" || operation == "d") {
-            operation = "detail";
-        }
-        
-        console.log('/cw-ticket.js: requested ticket ' + ticketId + ' operation ' + operation);
+        console.log('/cw-ticket.js: requested ticket ' + ticketId);
         
         const util = require('util')
         
         try {
-            var response = await tools.getMessageForTicket(ticketId, {operation});
+            var response = await tools.getMessageForTicket(ticketId,{});
             
             // debug to see the card that would be attached
-            console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))
+            // console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))
         } catch (e) {
                         
             let text = "Sorry, I wasn't able to help with that. " + e.message + ".";

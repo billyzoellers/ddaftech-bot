@@ -76,8 +76,9 @@ module.exports = {
      *      Output: {(String)markdown, (String)card_attachment}
      */
      getMessageForTicket: async function (ticketId,options) {
+         
+        const utility = require('../tools/utility');
 
-        let operation = options.operation;
         let action = options.action;
          
         // create API connection
@@ -102,13 +103,9 @@ module.exports = {
             throw(e);
         }
         
-        let params;
-        
-        if (operation == "detail") {
-          params = {
+        let params = {
               "orderby": "dateCreated desc"
             }
-        }
         
         try {
             var serviceNotes = await cw.ServiceDeskAPI.ServiceNotes.getServiceNotes(ticketId,params);
@@ -153,33 +150,21 @@ module.exports = {
         
         text += "</blockquote>";
 
-        /* no notes on mobile version
-        if (serviceNotes) {
-            text += "<hr>";
-            
-            let i = 0;
-            do {
-                let formattedNote = serviceNotes[i].text.replace(/\n/g, '<br>');
-                
-                text += "<strong>" + module.exports.returnNoteName(serviceNotes[i]) + " on " + module.exports.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)) + "</strong>";
-                
-                if (serviceNotes[i].internalFlag) {
-                    text += " [Internal Note]";
-                }
-                
-                text += "<blockquote>" + formattedNote + "</blockquote>";
-                
-                i++;
-                
-            } while(operation == "detail" && i < serviceNotes.length);
-            
-            if (operation != "detail") {
-                text += "For more details try <code>/cw ticket " + ticketId + " detail</code><br>";
-            }
-        }
-        */
         
-        text += "<small>This is the <em>mobile</em> version. Ticket details are available on the desktop version.</small>"
+        // initial description only on mobile version
+        if (serviceNotes) {
+            let initialNoteIndex = serviceNotes.length-1;
+
+            text += "<hr><strong>" + module.exports.returnNoteName(serviceNotes[initialNoteIndex]) + " on " + module.exports.dateToHumanReadable(new Date(serviceNotes[initialNoteIndex].dateCreated)) + "</strong>";
+            
+            if (serviceNotes[initialNoteIndex].internalFlag) {
+                text += " [Internal Note]";
+            }
+            
+            text += "<blockquote>" + utility.truncate_string(serviceNotes[initialNoteIndex].text.replace(/\n/g, '<br>'),200,'.....') + "</blockquote>";
+        }
+        
+        text += "<small>This is the <em>mobile</em> version.</small>"
         
         // Create  the Adaptive Card version of the message
         let card_body = [];
@@ -273,9 +258,8 @@ module.exports = {
             "bleed": true
         });
         
-        // create line for each ticket comment, or first ticket comment only
-        let i = 0;
-        do {
+        for (let i = 0; i < serviceNotes.length; i++) {
+            // create a note block if note has text
             if (serviceNotes[i].text) {
                 history_body.push({
                     "type": "Container",
@@ -324,16 +308,14 @@ module.exports = {
                     ]
                 });
             }
-            
-            i++;
-        } while (operation == "detail" && i < serviceNotes.length);
+        }
         
         card_body.push({
             "type": "ActionSet",
             "actions": [
                 {
                     "type": "Action.ShowCard",
-                    "title": "Show " + (operation == 'detail' ? "full history" : "initial description"),
+                    "title": "Show notes",
                     "card": {
                         "type": "AdaptiveCard",
                         "body": history_body,
@@ -395,6 +377,9 @@ module.exports = {
             }
         }
         
+        // total length of data being posted to webex
+        let length = text.length + JSON.stringify(card_attach).length;
+        console.log("/connectwise.js: post length in chars " + length)
         return { text, card_attach, ticket };
     // end of getMessageForTicket    
      },
