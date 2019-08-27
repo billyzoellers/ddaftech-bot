@@ -18,7 +18,7 @@ module.exports = function(controller) {
             return;
         }
         
-        let input = message.matches[1];
+        let input = message.matches[1].replace('&amp;','&');
         console.log("/cw-notify.js: got request to add notification for " + input);
         
         // create API connection
@@ -58,11 +58,22 @@ module.exports = function(controller) {
         console.log(company.id);
         
         var Notification = require('mongoose').model('Notification')
-        let notify = await Notification.find({ company_id: company.id, room_id: message.channel })
+        let notify = await Notification.find({ company_id: company.id })
         console.log(notify);
         
+        // if a notification already exists, do not allow another one to be created
         if (notify.length) {
-            let text = "That subscription already exists.";
+            let text = "That a subscription already exists for " + company.name + " in ";
+            
+            let room = await bot.api.rooms.get(notify[0].room_id);
+            text += room.title;
+            
+            if (room.teamId) {
+
+                let team = await bot.api.teams.get(room.teamId);
+                
+                text += " [" + team.name + "]";
+            }
             
             await bot.reply(message, {markdown: text});
             return;
