@@ -276,53 +276,54 @@ module.exports = {
         // create line for each ticket comment, or first ticket comment only
         let i = 0;
         do {
-
-            history_body.push({
-                "type": "Container",
-                "separator": (i > 0 ? true : false), // separator on all subsequent lines
-                "items": [
-                    {
-                        "type": "ColumnSet",
-                        "columns": [
-                            {
-                                "type": "Column",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "text":  module.exports.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
-                                        "wrap": true,
-                                        "weight": "Bolder"
-                                    }
-                                ],
-                                "width": 40
-                            },
-                            {
-                                "type": "Column",
-                                "spacing": "Medium",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "text": module.exports.returnNoteName(serviceNotes[i]) + (serviceNotes[i].internalAnalysisFlag ? " [Internal Note]" : ""),
-                                        "wrap": true,
-                                        "weight": "Bolder"
-                                    }
-                                ],
-                                "width": 60
-                            }
-                        ]
-                    },
-                    {
-                        "type": "RichTextBlock",
-                        "inlines": [
+            if (serviceNotes[i].text) {
+                history_body.push({
+                    "type": "Container",
+                    "separator": (i > 0 ? true : false), // separator on all subsequent lines
+                    "items": [
+                        {
+                            "type": "ColumnSet",
+                            "columns": [
+                                {
+                                    "type": "Column",
+                                    "items": [
                                         {
-                                "type": "TextRun",
-                                "text": serviceNotes[i].text,
-                                "size": "Small"
-                            }
-                        ]
-                    }
-                ]
-            });
+                                            "type": "TextBlock",
+                                            "text":  module.exports.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
+                                            "wrap": true,
+                                            "weight": "Bolder"
+                                        }
+                                    ],
+                                    "width": 40
+                                },
+                                {
+                                    "type": "Column",
+                                    "spacing": "Medium",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text": module.exports.returnNoteName(serviceNotes[i]) + (serviceNotes[i].internalAnalysisFlag ? " [Internal Note]" : ""),
+                                            "wrap": true,
+                                            "weight": "Bolder"
+                                        }
+                                    ],
+                                    "width": 60
+                                }
+                            ]
+                        },
+                        {
+                            "type": "RichTextBlock",
+                            "inlines": [
+                                            {
+                                    "type": "TextRun",
+                                    "text": serviceNotes[i].text,
+                                    "size": "Small"
+                                }
+                            ]
+                        }
+                    ]
+                });
+            }
             
             i++;
         } while (operation == "detail" && i < serviceNotes.length);

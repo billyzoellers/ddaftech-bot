@@ -12,10 +12,7 @@ module.exports = function(controller) {
         let ticketId = data.ticketId;
         let action = data.action;
         
-        let operation;
-        if (action == "updated") {
-            operation = "detail";
-        }
+        let operation = "detail";
         
         console.log('/cw-ticket.js: ticket_webhook for ticket ' + ticketId);
         
@@ -78,9 +75,13 @@ module.exports = function(controller) {
         
         console.log('/cw-ticket.js: requested ticket ' + ticketId + ' operation ' + operation);
         
+        const util = require('util')
+        
         try {
             var response = await tools.getMessageForTicket(ticketId, {operation});
-        
+            
+            // debug to see the card that would be attached
+            console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))
         } catch (e) {
                         
             let text = "Sorry, I wasn't able to help with that. " + e.message + ".";
