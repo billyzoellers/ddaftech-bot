@@ -2,7 +2,7 @@ module.exports = function(controller) {
     
     controller.middleware.ingest.use(async (bot, message, next) => {
 
-        if (message.type == 'self_message') {
+        if (message.type == 'self_message' || message.type == "attachmentActions") {
             next();
             return;
         }
