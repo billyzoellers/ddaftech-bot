@@ -43,50 +43,7 @@ module.exports = function(controller) {
                 
                 return;
             }
-            
-            // adding time entry
-            if (message.inputs.add_hours_hours || message.inputs.add_hours_mins) {
-                
-                let actualHours = 0;
-                actualHours += message.inputs.add_hours_hours;
-                switch(message.inputs.add_hours_hours) {
-                    case '15':
-                        actualHours += "0.25";
-                    case '30':
-                        actualHours += "0.5";
-                    case '45':
-                        actualHours += "0.75";
-                }
-                
-                try {
-                    var timeEntry = await cw.TimeAPI.TimeEntries.createTimeEntry({
-                        chargeToId: message.inputs.ticketId,
-                        workRole: {
-                            id: message.inputs.cw_billing_code
-                        },
-                        actualHours: actualHours,
-                        notes: message.inputs.cw_add_comment,
-                        addToInternalAnalysisFlag: (message.inputs.cw_comment_visibility == "private" ? true : false),
-                        addToDetailDescriptionFlag: (message.inputs.cw_comment_visibility == "public" ? true : false),
-                        member: {
-                            id: cwPerson.id
-                        }
-                    })
-                    
-                    console.log(timeEntry);
-                }catch(e) {
-                    
-                    console.log("attachmentActions.js: error on createTimeEntry with ticketId " + message.inputs.ticketId);
-                    console.error(e);
-        
-                    let text = "Sorry, I'm having trouble with that." + "<em> ";
-                    text += e.message + " (" + e.code + ")</em>";
-                    await bot.reply(message, {markdown: text});
-                    
-                    return;
-                }
-            }
-            
+
             var responseText =  "Ticket #" + message.inputs.ticketId + " was updated by " + person.firstName + " " + person.lastName + ":";
 
             // ticket status change
