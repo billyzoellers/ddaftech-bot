@@ -310,6 +310,39 @@ module.exports = {
             }
         }
         
+        let status_choices = [];
+        // Make API request for status options
+        try {
+            let params = {
+              "orderby": "sortOrder asc",
+              "conditions": "inactive=false"
+            }
+            
+            var statuses = await cw.ServiceDeskAPI.Statuses.getStatusesByBoardId(ticket.board.id, params);
+        }catch(e) {
+            console.log("cw-ticket.js: error on getStatusesByBoardId with boardId " + ticket.board.id);
+            console.error(e);
+
+            throw(e);
+        }
+
+        for (let i = 0; i < statuses.length; i++) {
+            
+            if (statuses[i].id == ticket.status.id) {
+                // current status
+                status_choices.push({
+                    "title": statuses[i].name.replace('>','') + " (current status)",
+                    "value": statuses[i].id.toString()
+                })
+                
+            } else {
+                status_choices.push({
+                    "title": statuses[i].name.replace('>',''),
+                    "value": statuses[i].id.toString()
+                })
+            }
+        }
+        
         card_body.push({
             "type": "ActionSet",
             "actions": [
@@ -335,16 +368,40 @@ module.exports = {
                                 "isMultiline": true
                             },
                             {
-                                "type": "Input.ChoiceSet",
-                                "id": "cw_comment_visibility",
-                                "choices": [
+                                "type": "ColumnSet",
+                                "columns": [
                                     {
-                                        "title": "Public (send to client)",
-                                        "value": "public"
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_comment_visibility",
+                                                "choices": [
+                                                    {
+                                                        "title": "Public (send to client)",
+                                                        "value": "public"
+                                                    },
+                                                    {
+                                                        "title": "Private",
+                                                        "value": "private"
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     },
                                     {
-                                        "title": "Private",
-                                        "value": "private"
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_new_status_id",
+                                                "value": ticket.status.id.toString(),
+                                                "placeholder": "(Change Status)",
+                                                "choices": status_choices
+                                            }
+                                        ]
                                     }
                                 ]
                             }
@@ -355,7 +412,8 @@ module.exports = {
                                 "title": "Send",
                                 "data": {
                                     "id": "submit_cw_add_comment",
-                                    "ticketId": ticket.id
+                                    "ticketId": ticket.id,
+                                    "cw_current_status_id": ticket.status.id
                                 }
                             }
                         ],
