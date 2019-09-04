@@ -175,7 +175,6 @@ module.exports = function(controller) {
         });
         
         let text = "I can help you find which rooms notifications are going to. See below:<br><ul>"
-
         for (let i = 0; i < notify.length; i++) {
             text += "<li><strong>";
             // notification scope
@@ -195,7 +194,7 @@ module.exports = function(controller) {
             // teams team/room
             let room = await bot.api.rooms.get(notify[i].room_id);
             text += room.title;
-            
+
             if (room.teamId) {
 
                 let team = await bot.api.teams.get(room.teamId);

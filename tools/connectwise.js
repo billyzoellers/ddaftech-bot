@@ -310,6 +310,73 @@ module.exports = {
             }
         }
         
+        let status_choices = [];
+        // Make API request for status options
+        try {
+            let params = {
+              "orderby": "sortOrder asc",
+              "conditions": "inactive=false"
+            }
+            
+            var statuses = await cw.ServiceDeskAPI.Statuses.getStatusesByBoardId(ticket.board.id, params);
+        }catch(e) {
+            console.log("cw-ticket.js: error on getStatusesByBoardId with boardId " + ticket.board.id);
+            console.error(e);
+
+            throw(e);
+        }
+
+        for (let i = 0; i < statuses.length; i++) {
+            
+            if (statuses[i].id == ticket.status.id) {
+                // current status
+                status_choices.push({
+                    "title": statuses[i].name.replace('>','') + " (current status)",
+                    "value": statuses[i].id.toString()
+                })
+                
+            } else {
+                status_choices.push({
+                    "title": statuses[i].name.replace('>',''),
+                    "value": statuses[i].id.toString()
+                })
+            }
+        }
+        
+        let billing_code_choices = [];
+        // Make API request for work role options
+        try {
+            let params = {
+                "orderby": "name asc",
+                "conditions": "inactiveFlag=false",
+                "pageSize": 30
+            }
+        
+            var roles = await cw.API.api('/time/workRoles', 'GET', params)
+        }catch(e) {
+            console.log("cw-ticket.js: error on GET /time/workRoles");
+            console.error(e);
+        
+            throw(e);
+        }
+
+        for (let i = 0; i < roles.length; i++) {
+            // try to cleanup billing code names
+            let name = roles[i].name
+            name = name.replace('-','');
+            name = name.replace('Infrastructure','INF');
+            name = name.replace('Infra','INF');
+            name = name.replace('OnPremise','OnPrem');
+            name = name.replace('&','');
+            name = name.replace('Information Security Office','InfoSecOfc');
+            name = utility.truncate_string(name, 28);
+
+            billing_code_choices.push({
+                "title": name,
+                "value": roles[i].id.toString()
+            })
+        }
+        
         card_body.push({
             "type": "ActionSet",
             "actions": [
@@ -335,16 +402,136 @@ module.exports = {
                                 "isMultiline": true
                             },
                             {
-                                "type": "Input.ChoiceSet",
-                                "id": "cw_comment_visibility",
-                                "choices": [
+                                "type": "ColumnSet",
+                                "columns": [
                                     {
-                                        "title": "Public (send to client)",
-                                        "value": "public"
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_comment_visibility",
+                                                "choices": [
+                                                    {
+                                                        "title": "Public (send to client)",
+                                                        "value": "public"
+                                                    },
+                                                    {
+                                                        "title": "Private",
+                                                        "value": "private"
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     },
                                     {
-                                        "title": "Private",
-                                        "value": "private"
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_new_status_id",
+                                                "value": ticket.status.id.toString(),
+                                                "placeholder": "(Change Status)",
+                                                "choices": status_choices
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_billing_code",
+                                                "value": "",
+                                                "placeholder": "Select Billing Code",
+                                                "choices": billing_code_choices
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "placeholder": "hours",
+                                                "id": "add_hours_hours",
+                                                "choices": [
+                                                    {
+                                                        "title": "0h",
+                                                        "value": "0"
+                                                    },
+                                                    {
+                                                        "title": "1h",
+                                                        "value": "1"
+                                                    },
+                                                    {
+                                                        "title": "2h",
+                                                        "value": "2"
+                                                    },
+                                                    {
+                                                        "title": "3h",
+                                                        "value": "3"
+                                                    },
+                                                    {
+                                                        "title": "4h",
+                                                        "value": "4"
+                                                    },
+                                                    {
+                                                        "title": "5h",
+                                                        "value": "5"
+                                                    },
+                                                    {
+                                                        "title": "6h",
+                                                        "value": "6"
+                                                    },
+                                                    {
+                                                        "title": "7h",
+                                                        "value": "7"
+                                                    },
+                                                    {
+                                                        "title": "8h",
+                                                        "value": "8"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "placeholder": "minutes",
+                                                "id": "add_hours_mins",
+                                                "choices": [
+                                                    {
+                                                        "title": "0m",
+                                                        "value": "0"
+                                                    },
+                                                    {
+                                                        "title": "15m",
+                                                        "value": "15"
+                                                    },
+                                                    {
+                                                        "title": "30m",
+                                                        "value": "30"
+                                                    },
+                                                    {
+                                                        "title": "45m",
+                                                        "value": "45"
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     }
                                 ]
                             }
@@ -355,7 +542,8 @@ module.exports = {
                                 "title": "Send",
                                 "data": {
                                     "id": "submit_cw_add_comment",
-                                    "ticketId": ticket.id
+                                    "ticketId": ticket.id,
+                                    "cw_current_status_id": ticket.status.id
                                 }
                             }
                         ],
