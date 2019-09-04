@@ -28,8 +28,8 @@ module.exports = function(controller) {
             });
             
             // Match webex member to connectwise
-            let person = await bot.api.people.get(message.personId);
-            let member_ident = person.emails[0].split('@')[0];
+            var webexPerson = await bot.api.people.get(message.personId);
+            let member_ident = webexPerson.emails[0].split('@')[0];
             try {
                 var cwPerson = await cw.SystemAPI.Members.getMemberByIdentifier(member_ident);
                 
@@ -44,9 +44,8 @@ module.exports = function(controller) {
                 return;
             }
 
-            var responseText =  "Ticket #" + message.inputs.ticketId + " was updated by " + person.firstName + " " + person.lastName + ":";
-
             // ticket status change
+            var updatedTicket;
             if (message.inputs.cw_current_status_id != message.inputs.cw_new_status_id) {
                 // make API request to update ticket
                 try {
@@ -59,10 +58,8 @@ module.exports = function(controller) {
                         }
                     }];
                     
-                    var updatedTicket = await cw.ServiceDeskAPI.Tickets.updateTicket(Number(message.inputs.ticketId),ops);
-                    
-                    responseText += "\n * changed status to " + cwutil.formatStatus(updatedTicket.status.name);
-                    
+                    updatedTicket = await cw.ServiceDeskAPI.Tickets.updateTicket(Number(message.inputs.ticketId),ops);
+
                 }catch(e) {
                     console.log("attachmentActions.js: error on updateTicket with ticketId " + message.inputs.ticketId);
                     console.error(e);
@@ -78,6 +75,7 @@ module.exports = function(controller) {
             }
             
             // note added
+            var newServiceNote;
             if (message.inputs.cw_add_comment) {
 
                 // create a note to post to the ticket
@@ -95,19 +93,9 @@ module.exports = function(controller) {
                 
                 // post the new note to the ticket
                 try {
-                    var newServiceNote = await cw.ServiceDeskAPI.ServiceNotes.createServiceNote(message.inputs.ticketId, note);
+                    newServiceNote = await cw.ServiceDeskAPI.ServiceNotes.createServiceNote(message.inputs.ticketId, note);
                     
                     console.log(newServiceNote);
-
-                    responseText += "\n * added "
-                    
-                    if (message.inputs.cw_comment_visibility == 'public') {
-                        responseText += "public comment"
-                    } else {
-                        responseText += "private note"
-                    }
-                    
-                    responseText += "<blockquote>" + newServiceNote.text + "</blockquote>";
                     
                 }catch(e) {
                     console.log("attachmentAction.js: error on createServiceNote with ticketId " + message.inputs.ticketId);
@@ -123,7 +111,22 @@ module.exports = function(controller) {
             }
             
         }
-
+        var responseText = webexPerson.firstName +  "  " + webexPerson.lastName + " updated ticket #" + message.inputs.ticketId + ":";
+        
+        if (newServiceNote) {
+            responseText += "<blockquote>**"
+            if (message.inputs.cw_comment_visibility == 'public') {
+                responseText += "public comment"
+            } else {
+                responseText += "private note"
+            }
+            responseText += "**<br />" + newServiceNote.text + "</blockquote>";
+        } else {
+            responseText += "<br />";
+        }
+        if (updatedTicket) {
+            responseText += "*changed status to " + cwutil.formatStatus(updatedTicket.status.name) + "*";
+        }
         
         try {
             // send new message
