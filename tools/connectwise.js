@@ -80,7 +80,7 @@ module.exports = {
         const utility = require('../tools/utility');
 
         let action = options.action;
-         
+        
         // create API connection
         const ConnectWiseRest = require('connectwise-rest');
         const cw = new ConnectWiseRest({
@@ -132,7 +132,6 @@ module.exports = {
             }
         }
         
-        
         // Create the text version of the message
         let text = "";
         
@@ -145,14 +144,15 @@ module.exports = {
         text += "<blockquote><strong>Status:</strong> " + ticket.status.name.replace('>','');
         
         text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
-        
+
         text += "<br><strong>Assignee:</strong> " + await module.exports.returnTicketAssignee(ticket);
-        
+
         text += "</blockquote>";
 
         
         // initial description only on mobile version
-        if (serviceNotes) {
+        if (serviceNotes.length) {
+
             let initialNoteIndex = serviceNotes.length-1;
 
             text += "<hr><strong>" + module.exports.returnNoteName(serviceNotes[initialNoteIndex]) + " on " + module.exports.dateToHumanReadable(new Date(serviceNotes[initialNoteIndex].dateCreated)) + "</strong>";
@@ -165,7 +165,7 @@ module.exports = {
         }
         
         text += "<small>This is the <em>mobile</em> version.</small>"
-        
+
         // Create  the Adaptive Card version of the message
         let card_body = [];
         let history_body = [];
@@ -200,7 +200,7 @@ module.exports = {
                 }
             ]
         });
-        
+
         // add ticket details
         card_body.push({
             "type": "FactSet",
@@ -343,85 +343,90 @@ module.exports = {
             }
         }
         
-        card_body.push({
-            "type": "ActionSet",
-            "actions": [
-                {
-                    "type": "Action.ShowCard",
-                    "title": "Show notes",
-                    "card": {
-                        "type": "AdaptiveCard",
-                        "body": history_body,
-                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
-                    }
-                },
-                {
-                    "type": "Action.ShowCard",
-                    "title": "Add comment",
-                    "card": {
-                        "type": "AdaptiveCard",
-                        "body": [
+        let actionset_actions = [];
+        
+        if (serviceNotes.length) {
+            actionset_actions.push({
+                "type": "Action.ShowCard",
+                "title": "Show notes",
+                "card": {
+                    "type": "AdaptiveCard",
+                    "body": history_body,
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                }
+            });
+        }
+        
+        actionset_actions.push({
+            "type": "Action.ShowCard",
+            "title": "Add comment",
+            "card": {
+                "type": "AdaptiveCard",
+                "body": [
+                    {
+                        "type": "Input.Text",
+                        "id": "cw_add_comment",
+                        "placeholder": "Add your comment..",
+                        "isMultiline": true
+                    },
+                    {
+                        "type": "ColumnSet",
+                        "columns": [
                             {
-                                "type": "Input.Text",
-                                "id": "cw_add_comment",
-                                "placeholder": "Add your comment..",
-                                "isMultiline": true
-                            },
-                            {
-                                "type": "ColumnSet",
-                                "columns": [
+                                "type": "Column",
+                                "width": "stretch",
+                                "items": [
                                     {
-                                        "type": "Column",
-                                        "width": "stretch",
-                                        "items": [
+                                        "type": "Input.ChoiceSet",
+                                        "id": "cw_comment_visibility",
+                                        "choices": [
                                             {
-                                                "type": "Input.ChoiceSet",
-                                                "id": "cw_comment_visibility",
-                                                "choices": [
-                                                    {
-                                                        "title": "Public (send to client)",
-                                                        "value": "public"
-                                                    },
-                                                    {
-                                                        "title": "Private",
-                                                        "value": "private"
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "type": "Column",
-                                        "width": "stretch",
-                                        "items": [
+                                                "title": "Public (send to client)",
+                                                "value": "public"
+                                            },
                                             {
-                                                "type": "Input.ChoiceSet",
-                                                "id": "cw_new_status_id",
-                                                "value": ticket.status.id.toString(),
-                                                "placeholder": "(Change Status)",
-                                                "choices": status_choices
+                                                "title": "Private",
+                                                "value": "private"
                                             }
                                         ]
                                     }
                                 ]
-                            }
-                        ],
-                        "actions": [
+                            },
                             {
-                                "type": "Action.Submit",
-                                "title": "Send",
-                                "data": {
-                                    "id": "submit_cw_add_comment",
-                                    "ticketId": ticket.id,
-                                    "cw_current_status_id": ticket.status.id
-                                }
+                                "type": "Column",
+                                "width": "stretch",
+                                "items": [
+                                    {
+                                        "type": "Input.ChoiceSet",
+                                        "id": "cw_new_status_id",
+                                        "value": ticket.status.id.toString(),
+                                        "placeholder": "(Change Status)",
+                                        "choices": status_choices
+                                    }
+                                ]
                             }
-                        ],
-                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
-                    },
-                    "style": "positive"
-                }
-            ]
+                        ]
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "Action.Submit",
+                        "title": "Send",
+                        "data": {
+                            "id": "submit_cw_add_comment",
+                            "ticketId": ticket.id,
+                            "cw_current_status_id": ticket.status.id
+                        }
+                    }
+                ],
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+            },
+            "style": "positive"
+        });
+        
+        card_body.push({
+            "type": "ActionSet",
+            "actions": actionset_actions
         });
               
         // add headers to card before attaching

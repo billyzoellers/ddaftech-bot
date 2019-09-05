@@ -76,7 +76,8 @@ module.exports = function(controller) {
             // debug to see the card that would be attached
             // console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))
         } catch (e) {
-                        
+            console.log("cw-ticket.js: error in tools.GetMessageForTicket()");          
+            
             let text = "Sorry, I wasn't able to help with that. " + e.message + ".";
             await bot.say({markdown: text});
             
