@@ -105,11 +105,6 @@ controller.ready(async function() {
  */
 controller.webserver.post('/cw', async (req,res) => {
     
-    if (process.env.PROCESS_WEBHOOK == "no") {
-        console.log("recieved webhook but did not process due to PROCESS_WEBHOOK=no")
-        return;
-    }
-    
     res.status(200);
     res.send('ok');
     
@@ -151,6 +146,11 @@ controller.webserver.post('/cw', async (req,res) => {
     // do not send trigger on specific actions
     if (action == "deleted" || action == "updated") {
         console.log("POST /cw webhook not firing message for action " + action);
+        return;
+    }
+
+    if (process.env.PROCESS_WEBHOOK == "no") {
+        console.log("POST /cw webhook did not trigger bot due to PROCESS_WEBHOOK=no")
         return;
     }
 
