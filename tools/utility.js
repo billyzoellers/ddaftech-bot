@@ -13,5 +13,14 @@ module.exports = {
         } else {
             return str;
         }
+    },
+    date_string_format_short: function (dateString) {
+        let df = require ('dateformat');
+        
+        let date = new Date(dateString);
+        date.setHours(date.getHours() - 4);
+        
+        return df(date, "m/d/yy");
+
     }
 }
