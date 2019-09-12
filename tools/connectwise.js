@@ -103,7 +103,6 @@ module.exports = {
         card_body.push({
             type: "Container",
             style: "emphasis",
-            bleed: true,
             items: [
                 {
                     type: "TextBlock",
@@ -131,7 +130,6 @@ module.exports = {
         card_body.push({
             type: "Container",
             style: "emphasis",
-            bleed: false,
             items: [
                 {
                     type: "TextBlock",
@@ -201,8 +199,7 @@ module.exports = {
                             }
                         ]
                     }
-                ],
-                bleed: true
+                ]
             });
             
             // generate a note container for each note
@@ -522,7 +519,6 @@ module.exports = {
             card_body.push({
                 "type": "Container",
                 "style": "emphasis",
-                "bleed": true,
                 "items": [
                     {
                         "type": "TextBlock",
@@ -586,8 +582,7 @@ module.exports = {
                             }
                         ]
                     }
-                ],
-                "bleed": true
+                ]
             });
             
             for (let i = 0; i < serviceNotes.length; i++) {
@@ -675,10 +670,10 @@ module.exports = {
                 }
             }
             
-            let actionset_actions = [];
-            
+            let card_actions = [];
+            /*
             if (serviceNotes.length) {
-                actionset_actions.push({
+                card_actions.push({
                     "type": "Action.ShowCard",
                     "title": "Show notes",
                     "card": {
@@ -688,8 +683,9 @@ module.exports = {
                     }
                 });
             }
+            */
             
-            actionset_actions.push({
+            card_actions.push({
                 "type": "Action.ShowCard",
                 "title": "Add comment",
                 "card": {
@@ -755,11 +751,6 @@ module.exports = {
                 },
                 "style": "positive"
             });
-            
-            card_body.push({
-                "type": "ActionSet",
-                "actions": actionset_actions
-            });
                   
             // add headers to card before attaching
             card_attach = {
@@ -767,8 +758,9 @@ module.exports = {
                 "content": {
                     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                     "type": "AdaptiveCard",
-                    "version": "1.0",
-                    "body": card_body
+                    "version": "1.1",
+                    "body": card_body//,
+                    //"actions": card_actions
                 }
             }
         }
@@ -889,8 +881,7 @@ module.exports = {
                         }
                     ]
                 }
-            ],
-            bleed: true
+            ]
         });
         
         // TITLE LINE
@@ -904,93 +895,98 @@ module.exports = {
                     wrap: true
                 },
                 {
-                    type: "ColumnSet",
-                    spacing: "medium",
-                    separator: false,
+                    type: "Container",
                     style: "accent",
-                    columns: [
+                    items: [
                         {
-                            type: "Column",
-                            width: 1,
-                            items: [
+                            type: "ColumnSet",
+                            spacing: "medium",
+                            separator: false,
+                            columns: [
                                 {
-                                    type: "TextBlock",
-                                    text: "EST START",
-                                    isSubtle: true,
-                                    horizontalAlignment: "center",
-                                    weight: "bolder"
+                                    type: "Column",
+                                    width: 1,
+                                    items: [
+                                        {
+                                            type: "TextBlock",
+                                            text: "EST START",
+                                            isSubtle: true,
+                                            horizontalAlignment: "center",
+                                            weight: "bolder"
+                                        },
+                                        {
+                                            type: "TextBlock",
+                                            text: utility.date_string_format_short(project.estimatedStart),
+                                            weight: "bolder",
+                                            horizontalAlignment: "center",
+                                            spacing: "small"
+                                        }
+                                    ]
                                 },
                                 {
-                                    type: "TextBlock",
-                                    text: utility.date_string_format_short(project.estimatedStart),
-                                    weight: "bolder",
-                                    horizontalAlignment: "center",
-                                    spacing: "small"
-                                }
-                            ]
-                        },
-                        {
-                            type: "Column",
-                            width: 1,
-                            items: [
-                                {
-                                    type: "TextBlock",
-                                    text: "EST END",
-                                    isSubtle: true,
-                                    horizontalAlignment: "right",
-                                    weight: "bolder"
+                                    type: "Column",
+                                    width: 1,
+                                    items: [
+                                        {
+                                            type: "TextBlock",
+                                            text: "EST END",
+                                            isSubtle: true,
+                                            horizontalAlignment: "right",
+                                            weight: "bolder"
+                                        },
+                                        {
+                                            type: "TextBlock",
+                                            text: utility.date_string_format_short(project.estimatedEnd),
+                                            horizontalAlignment: "right",
+                                            weight: "bolder",
+                                            spacing: "small"
+                                        }
+                                    ]
                                 },
                                 {
-                                    type: "TextBlock",
-                                    text: utility.date_string_format_short(project.estimatedEnd),
-                                    horizontalAlignment: "right",
-                                    weight: "bolder",
-                                    spacing: "small"
-                                }
-                            ]
-                        },
-                        {
-                            type: "Column",
-                            width: 1
-                        },
-                        {
-                            type: "Column",
-                            width: 1,
-                            items: [
-                                {
-                                    type: "TextBlock",
-                                    text: "CHARGED",
-                                    isSubtle: true,
-                                    horizontalAlignment: "center",
-                                    weight: "bolder"
+                                    type: "Column",
+                                    width: 1
                                 },
                                 {
-                                    type: "TextBlock",
-                                    text: project.actualHours + "h",
-                                    color: (project.actualHours > project.budgetHours ? "attention" : "good"),
-                                    weight: "bolder",
-                                    horizontalAlignment: "center",
-                                    spacing: "small"
-                                }
-                            ]
-                        },
-                        {
-                            type: "Column",
-                            width: 1,
-                            items: [
-                                {
-                                    type: "TextBlock",
-                                    text: "BUDGET",
-                                    isSubtle: true,
-                                    horizontalAlignment: "right",
-                                    weight: "bolder"
+                                    type: "Column",
+                                    width: 1,
+                                    items: [
+                                        {
+                                            type: "TextBlock",
+                                            text: "CHARGED",
+                                            isSubtle: true,
+                                            horizontalAlignment: "center",
+                                            weight: "bolder"
+                                        },
+                                        {
+                                            type: "TextBlock",
+                                            text: project.actualHours + "h",
+                                            color: (project.actualHours > project.budgetHours ? "attention" : "good"),
+                                            weight: "bolder",
+                                            horizontalAlignment: "center",
+                                            spacing: "small"
+                                        }
+                                    ]
                                 },
                                 {
-                                    type: "TextBlock",
-                                    text: project.budgetHours + "h",
-                                    horizontalAlignment: "right",
-                                    weight: "bolder",
-                                    spacing: "small"
+                                    type: "Column",
+                                    width: 1,
+                                    items: [
+                                        {
+                                            type: "TextBlock",
+                                            text: "BUDGET",
+                                            isSubtle: true,
+                                            horizontalAlignment: "right",
+                                            weight: "bolder"
+                                        },
+                                        {
+                                            type: "TextBlock",
+                                            text: project.budgetHours + "h",
+                                            horizontalAlignment: "right",
+                                            weight: "bolder",
+                                            spacing: "small"
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -1048,8 +1044,6 @@ module.exports = {
             workplan_body.push({
                 type: "Container",
                 style: "accent",
-                bleed: true,
-                spacing: "Padding",
                 items: [
                     {
                         type: "TextBlock",
@@ -1073,7 +1067,6 @@ module.exports = {
                             {
                                 type: "Column",
                                 width: "auto",
-                                horizontalAlignment: "right",
                                 items: [
                                     {
                                         type: "TextBlock",
@@ -1089,8 +1082,8 @@ module.exports = {
         }
         
         // create actionset
-        let actionset_actions = [];
-        actionset_actions.push({
+        let card_actions = [];
+        card_actions.push({
             type: "Action.ShowCard",
             title: "Work Plan",
             card: {
@@ -1098,11 +1091,6 @@ module.exports = {
                 body: workplan_body,
                 $schema: "http://adaptivecards.io/schemas/adaptive-card.json"
             }
-        });
-        
-        card_body.push({
-            type: "ActionSet",
-            actions: actionset_actions
         });
     
         // add headers to card before attaching
@@ -1112,7 +1100,8 @@ module.exports = {
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                 "type": "AdaptiveCard",
                 "version": "1.1",
-                "body": card_body
+                "body": card_body,
+                "actions": card_actions
             }
         }
         
