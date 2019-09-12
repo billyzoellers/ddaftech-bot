@@ -29,9 +29,6 @@ module.exports = function(controller) {
         try {
             var messageForProject = await cwtools.getMessageForProject(cw,projectId,{});
             
-            // debug to see the card that would be attached
-            //console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))
-            
             // send the message
             try {
                 await bot.reply(message, {markdown: messageForProject.text, attachments: messageForProject.card});
