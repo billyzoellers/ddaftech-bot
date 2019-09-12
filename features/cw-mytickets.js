@@ -83,7 +83,6 @@ module.exports = function(controller) {
         
         // Create  the Adaptive Card version of the message
         let card_body = [];
-        
         // add footer
         card_body.push({
             "type": "Container",
@@ -144,8 +143,7 @@ module.exports = function(controller) {
                         }
                     ]
                 }
-            ],
-            "bleed": true
+            ]
         });
         
         // create line for each ticket
@@ -156,8 +154,7 @@ module.exports = function(controller) {
             // push to adaptive card
             card_body.push({
                 "type": "Container",
-                "style": "Emphasis",
-                "wrap": false,
+                "style": "emphasis",
                 "items": [
                     {
                         "type": "ColumnSet",
@@ -230,6 +227,11 @@ module.exports = function(controller) {
                 "version": "1.0",
                 "body": card_body
             }
+        }
+        
+        if (process.env.DEBUG) {
+            const util = require('util');
+            console.log(util.inspect(JSON.stringify(card_attach.content), false, null, true /* enable colors */))
         }
 
         try {
