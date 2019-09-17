@@ -6,6 +6,7 @@
 module.exports = function(controller) {
     
     const cwtools = require('../tools/connectwise');
+    const cwproject = require('../tools/cw-project');
     const utility = require('../tools/utility');
 
     controller.hears(new RegExp(/^\/cw project|p\s(\d+)$/),'message,direct_message', async(bot, message) => {
@@ -27,7 +28,7 @@ module.exports = function(controller) {
         console.log('cw-project.js: requested project ' + projectId);
         
         try {
-            var messageForProject = await cwtools.getMessageForProject(cw,projectId,{});
+            var messageForProject = await cwproject.getMessageForProject(cw,projectId,{});
             
             // send the message
             try {

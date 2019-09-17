@@ -242,8 +242,7 @@ module.exports = {
                             },
                             {
                                 "type": "TextBlock",
-                                //"text": ticketNotes[i].text
-                                "text": "*Notes unavailable*"
+                                "text": ticketNotes[i].text
                             }
                         ]
                     });
@@ -262,6 +261,8 @@ module.exports = {
             });
             
         }
+        console.log("TICKET NOTES" + ticketNotes.length);
+        console.log(ticketNotes);
         
         // create action for updating card
         let status_choices = []
@@ -613,8 +614,7 @@ module.exports = {
                             },
                             {
                                 "type": "TextBlock",
-                                //"text": serviceNotes[i].text
-                                "text": "*Notes unavailable.*"
+                                "text": serviceNotes[i].text
                             }
                         ]
                     });
