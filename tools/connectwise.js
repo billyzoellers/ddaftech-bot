@@ -444,46 +444,13 @@ module.exports = {
         }
         
         // Create the text version of the message
-        let text = "";
+        let text = "<small>Update your Webex Teams app to the latest version to view this content.</small>";
         let card_attach;
         
         if (ticket.recordType == "ProjectTicket") {
-            text += "<small>Project Tickets are Desktop only</small>";
             
             card_attach = await module.exports.getAdaptiveCardForProjectTicket(cw,ticket,serviceNotes,options);
         } else {
-        
-            if (action) {
-                text += "<h3>" + actionText + "</h3>"
-            }
-            
-            text += "<h3>Ticket " + ticket.id +  " - " + ticket.summary + "</h3>";
-            
-            text += "<blockquote><strong>Status:</strong> " + ticket.status.name.replace('>','');
-            
-            text += "<br><strong>Requester:</strong> <a href='mailto:" + ticket.contactEmailAddress + "'>" + ticket.contactName + "</a> at " + ticket.company.name;
-    
-            text += "<br><strong>Assignee:</strong> " + await module.exports.returnTicketAssignee(ticket);
-    
-            text += "</blockquote>";
-    
-            
-            // initial description only on mobile version
-            if (serviceNotes.length) {
-    
-                let initialNoteIndex = serviceNotes.length-1;
-    
-                text += "<hr><strong>" + module.exports.returnNoteName(serviceNotes[initialNoteIndex]) + " on " + module.exports.dateToHumanReadable(new Date(serviceNotes[initialNoteIndex].dateCreated)) + "</strong>";
-                
-                if (serviceNotes[initialNoteIndex].internalFlag) {
-                    text += " [Internal Note]";
-                }
-                
-                text += "<blockquote>" + utility.truncate_string(serviceNotes[initialNoteIndex].text.replace(/\n/g, '<br>'),200,'.....') + "</blockquote>";
-            }
-            
-            text += "<small>This is the <em>mobile</em> version.</small>"
-            
     
             // Create  the Adaptive Card version of the message
             let card_body = [];
