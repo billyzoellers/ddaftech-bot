@@ -8,6 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "adaptivecards-templating": "^0.1.1-alpha.0",
     "botbuilder-adapter-webex": "^1.0.4",
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.6.1",
