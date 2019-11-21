@@ -42,7 +42,23 @@ module.exports = function(controller) {
             
             // Go ahead and request the snapshot
             let snapshotUrl = await getSnapshotUrl(cameraSerial,networkId);
+    /* IN PROGRESS - ISSUE WITH MERAKI API
+            let input = {}
+            input['networkId'] = networkId;
+            input['serial'] = cameraSerial;
             
+            //let snapshotUrl = await meraki.CamerasController.generateNetworkCameraSnapshot(input);
+            //console.log(snapshotUrl)
+
+            let videoLlinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
+
+            const promise = meraki.CamerasController.generateNetworkCameraSnapshot(input);
+            promise.then((response) => {
+                console.log(response);
+            }, (err) => {
+                console.error(err);
+            });
+    END IN PROGRESS */
             // Respond with count of people displayed on the camera
             let cameraAnalyticsLive = await meraki.MVSenseController.getDeviceCameraAnalyticsLive(cameraSerial);
             let peopleCount = cameraAnalyticsLive.zones['0']['person'];
