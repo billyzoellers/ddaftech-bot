@@ -161,11 +161,20 @@ async function processMVSnapshot(cameraSerial, bot, message) {
     // Connect to Meraki API
     const meraki = require('meraki');
     const configuration = meraki.Configuration;
+    if (process.env.MERAKI_BASEURI) {
+        configuration.BASEURI = process.env.MERAKI_BASEURI;
+    }
     configuration.xCiscoMerakiAPIKey = process.env.MERAKI_TOKEN;
     
     let networkId = "N_591660401045840345";
     
-    let url = await getSnapshotUrl(cameraSerial,networkId);
+    // Get snapshot URL and live video link
+    let input = {}
+    input['networkId'] = networkId;
+    input['serial'] = cameraSerial;
+    
+    let url = await meraki.CamerasController.generateNetworkCameraSnapshot(input);
+    let videoLlinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
     
     let tempMessage = await bot.reply(message,{markdown:'Please wait about `5 seconds` while I locate your snapshot..'});
     await bot.deleteMessage({id: message.messageId });
@@ -195,6 +204,7 @@ async function processMVSnapshot(cameraSerial, bot, message) {
     } else {
         text += peopleCount + " people.";
     }
+    text +=  " [Live Video](" + videoLlinkUrl.url + ")"
     
     await sleep(5000);
     await bot.reply(message,{markdown: text, files:[url.url]});
@@ -302,31 +312,6 @@ async function processMVInfo(cameraSerial, bot, message) {
 }
 
 /* related functions */
-async function getSnapshotUrl(cameraSerial,networkId) {
-    // Connect to the Meraki API using 'node-meraki'
-    const apiKey = process.env.MERAKI_TOKEN;
-    const version = "v0";
-    const target = "n51";
-    const rateLimiter = {
-        enabled: true
-    };
-    const baseUrl = "https://api.meraki.com";
-    
-    const nodemeraki = require("node-meraki")({
-    version,
-    apiKey,
-    target,
-    baseUrl,
-    rateLimiter
-    });
-    
-    console.log('meraki-snapshot.js: generating screenshot for ' + cameraSerial + " on network " + networkId);
-    var url = await nodemeraki.postRaw({
-        path: "api/v0/networks/"+ networkId + "/cameras/" + cameraSerial + "/snapshot"
-    });
-    
-    return url;
-};
 
 function sleep(ms){
     console.log("meraki-snapshot.js: sleeping " + ms + "ms")
