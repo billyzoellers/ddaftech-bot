@@ -471,7 +471,7 @@ module.exports = {
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": actionText.toUpperCase(),
+                            "text": actionText.toUpperCase() + ticketTypeText,
                             "size": "Large",
                             "weight": "Bolder",
                             "color": "attention"
