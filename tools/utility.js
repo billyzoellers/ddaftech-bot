@@ -18,7 +18,7 @@ module.exports = {
         let df = require ('dateformat');
         
         let date = new Date(dateString);
-        date.setHours(date.getHours() - 4);
+        date.setHours(date.getHours() - 5);
         
         return df(date, "m/d/yy");
 
