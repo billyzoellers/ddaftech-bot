@@ -433,20 +433,28 @@ module.exports = {
             
             switch(action) {
               case 'updated':
-                actionText = "TICKET UPDATED";
+                actionText = "Updated";
                 break;
               case 'added':
-                actionText = "NEW TICKET";
+                actionText = "New";
                 break;
               default:
                 actionText = action;
             }
         }
         
-        // Create the text version of the message
-        let text = "<small>Update your Webex Teams app to the latest version to view this content.</small>";
-        let card_attach;
+        // "ServiceTicket" to "Service Ticket"
+        let ticketTypeText = ticket.recordType.replace(/([A-Z])/g, ' $1').trim()
         
+        // Create the text version of the message (for incompatible clients and client notifications)
+        let text = "";
+        if (action) {
+            text += actionText + " ";
+        }
+        text += ticketTypeText + " #" + ticket.id + ": " + ticket.summary + " (" + ticket.contactName + " at " +  ticket.company.name + ")";
+        console.log("/connectwise.js getMessageForTicket():" + text)
+        
+        let card_attach;
         if (ticket.recordType == "ProjectTicket") {
             
             card_attach = await module.exports.getAdaptiveCardForProjectTicket(cw,ticket,serviceNotes,options);
@@ -463,7 +471,7 @@ module.exports = {
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": actionText,
+                            "text": actionText.toUpperCase(),
                             "size": "Large",
                             "weight": "Bolder",
                             "color": "attention"
