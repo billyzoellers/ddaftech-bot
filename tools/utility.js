@@ -21,6 +21,13 @@ module.exports = {
         date.setHours(date.getHours() - 5);
         
         return df(date, "m/d/yy");
-
+    },
+    date_string_format_long_with_time: function(dateString) {
+        let df = require ('dateformat');
+        
+        let date = new Date(dateString);
+        date.setHours(date.getHours() - 5);
+        
+        return df(date, "ddd, m/d/yy h:MM TT");
     }
 }

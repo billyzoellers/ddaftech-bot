@@ -20,22 +20,6 @@ module.exports = {
     },
     
     /*
-     * dateToHumanReadable(date) -> accepts a date in ConnectWise format, returns the date with better formatting
-     *
-     *      Input: (Date)
-     *      Output: (String)
-     */
-    dateToHumanReadable: function (date) {
-        let df = require ('dateformat');
-        
-        date.setHours(date.getHours() - 4);
-        
-        let humanReadable = df(date, "ddd, m/d/yy h:MM TT");
-        
-        return humanReadable
-    },
-    
-    /*
      * returnNoteName(ServiceNote) -> accepts a ConnectWise ServiceNote object and returns the associated member OR contact name
      *
      *      Input: (ServiceNote)
@@ -80,7 +64,8 @@ module.exports = {
      *
      */
      getAdaptiveCardForProjectTicket: async function (cw,ticket,ticketNotes,options) {
-        console.log(ticket);
+        const utility = require('../tools/utility');
+        //console.log(ticket);
         let action = options.action;
 
         let card_body = []; // main body of card
@@ -218,7 +203,7 @@ module.exports = {
                                         "items": [
                                             {
                                                 "type": "TextBlock",
-                                                "text":  module.exports.dateToHumanReadable(new Date(ticketNotes[i].dateCreated)),
+                                                "text":  utility.serviceNotes[i].dateCreated(ticketNotes[i].dateCreated),
                                                 "wrap": true,
                                                 "weight": "Bolder"
                                             }
@@ -471,7 +456,7 @@ module.exports = {
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": actionText.toUpperCase() + ticketTypeText,
+                            "text": actionText.toUpperCase() + " " + ticketTypeText.toUpperCase(),
                             "size": "Large",
                             "weight": "Bolder",
                             "color": "attention"
@@ -565,7 +550,7 @@ module.exports = {
                                         "items": [
                                             {
                                                 "type": "TextBlock",
-                                                "text":  module.exports.dateToHumanReadable(new Date(serviceNotes[i].dateCreated)),
+                                                "text":  utility.date_string_format_long_with_time(serviceNotes[i].dateCreated),
                                                 "wrap": true,
                                                 "weight": "Bolder"
                                             }
