@@ -174,7 +174,7 @@ async function processMVSnapshot(cameraSerial, bot, message) {
     input['serial'] = cameraSerial;
     
     let url = await meraki.CamerasController.generateNetworkCameraSnapshot(input);
-    let videoLlinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
+    let videoLinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
     
     let tempMessage = await bot.reply(message,{markdown:'Please wait about `5 seconds` while I locate your snapshot..'});
     await bot.deleteMessage({id: message.messageId });
@@ -204,7 +204,7 @@ async function processMVSnapshot(cameraSerial, bot, message) {
     } else {
         text += peopleCount + " people.";
     }
-    text +=  " [Live Video](" + videoLlinkUrl.url + ")"
+    text +=  " [Live Video](" + videoLinkUrl.url + ")"
     
     await sleep(5000);
     await bot.reply(message,{markdown: text, files:[url.url]});
