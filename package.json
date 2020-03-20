@@ -8,10 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "adaptivecards-templating": "^0.1.1-alpha.0",
-    "botbuilder-adapter-webex": "^1.0.5",
+    "adaptivecards-templating": "^0.1.1-alpha.1",
+    "botbuilder-adapter-webex": "^1.0.7",
     "botbuilder-storage-mongodb": "^0.9.5",
-    "botkit": "^4.6.2",
+    "botkit": "^4.8.1",
     "botkit-plugin-cms": "^1.0.3",
     "connectwise-rest": "^0.23.3",
     "connectwise-rest-api": "^1.2.1",
@@ -19,7 +19,7 @@
     "dotenv": "^7.0.0",
     "ipinfo": "^1.3.9",
     "meraki": "^1.5.0",
-    "mongoose": "^5.9.3",
+    "mongoose": "^5.9.5",
     "node-meraki": "^5.12.1"
   }
 }
