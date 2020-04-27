@@ -325,6 +325,8 @@ async function processConfirmCWNotifications(company_id, bot, message) {
     
     await bot.reply(message, {markdown: text});
     await bot.deleteMessage({id: message.messageId });
+    console.log(message);
+    console.log("attachmentActions.js: processConfirmCWNotifications(): " + (await bot.api.people.get(message.personId)).displayName + " deleted notification for " + company.name);
     
 }
 
@@ -367,7 +369,7 @@ async function processDeleteCWNotifications(notification_id, bot, message) {
     let text = "Deleted notification for " + name;
     await bot.reply(message,{markdown: text});
     await bot.deleteMessage({id: message.messageId });
-    console.log("attachmentActions.js: processDeleteCWNotifications(): " + message.personEmail + " deleted notification for " + name);
+    console.log("attachmentActions.js: processDeleteCWNotifications(): " + (await bot.api.people.get(message.personId)).displayName + " deleted notification for " + name);
 }
 
 async function processMVSnapshot(cameraSerial, bot, message) {
