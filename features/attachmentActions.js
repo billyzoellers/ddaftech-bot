@@ -19,6 +19,21 @@ module.exports = function(controller) {
                 await processMVSnapshot(message.inputs.mv_list_serial, bot, message);
                 
                 break;
+            case 'add_cw_notification':
+                console.log("attachmentActions.js: for add cw notification");
+                await processAddCWNotifications(message.inputs.company_name, bot, message);
+                
+                break;
+            case 'delete_cw_notification':
+                console.log("attachmentActions.js: for delete cw notification");
+                await processDeleteCWNotifications(message.inputs.cw_notifications_edit, bot, message);
+                
+                break;
+            case 'confirm_cw_notification':
+                console.log("attachmentActions.js: for confirm cw notification");
+                await processConfirmCWNotifications(message.inputs.cw_confirm_company_id, bot, message);
+
+                break;
             default:
                 // legacy CW stuff - need to sort better
                 const cwutil = require('../tools/connectwise');
@@ -155,6 +170,204 @@ module.exports = function(controller) {
         
     
     });
+}
+
+// Find companys matching company_string and present them to the user for confirmation
+//      that they want a notification to be added
+async function processAddCWNotifications(company_string, bot, message) {
+    // create API connection to CW
+    const ConnectWiseRest = require('connectwise-rest');
+    const cw = new ConnectWiseRest({
+        companyId: process.env.CW_COMPANY,
+        companyUrl: 'connectwise.deandorton.com',
+        clientId: process.env.CW_CLIENTID,
+        publicKey: process.env.CW_PUBLIC_KEY,
+        privateKey: process.env.CW_PRIVATE_KEY,
+        debug: false,               // optional, enable debug logging
+        logger: (level, text, meta) => { } // optional, pass in logging function
+    });
+    
+    let params = {
+        "conditions": "name='" + company_string + "'",
+    }
+    
+    try {
+        var companies = await cw.CompanyAPI.Companies.getCompanies(params)
+
+    }catch(e) {
+        console.log("attachmentActions.js: processAddCWNotifications() ERROR getCompanies() " + company_string);
+        console.error(e);
+    
+        throw(e);
+    }
+    
+    if (companies.length == 0) {
+        let text = "I was not able to find a company named <em>" + company_string +"</em> in ConnectWise.";
+        bot.reply(message, {markdown: text});
+        
+        return;
+    }
+    
+    await sendConfirmCWNotifications(companies, bot, message);
+    
+}
+
+// Send a confirmation message to the user after they requested notifications to be added
+async function sendConfirmCWNotifications(companies, bot, message) {
+    // Use adaptive cards templating
+    var ACData = require("adaptivecards-templating");
+    
+    var templatePayload = {
+        "type": "AdaptiveCard",
+        "version": "1.1",
+        "body": [
+            {
+                "type": "TextBlock",
+                "size": "Medium",
+                "weight": "Bolder",
+                "text": "Confirm New Notification"
+            },
+            {
+                "type": "Input.ChoiceSet",
+                "choices": [
+                    {
+                        "$data": "{companies}",
+                        "title": "{name + ' (cwID: ' + toString(id) + ')'}",
+                        "value": "{toString(id)}"
+                    }
+                ],
+                "id": "cw_confirm_company_id"
+            }
+        ],
+        "actions": [
+            {
+                "type": "Action.Submit",
+                "title": "Confirm", 
+                "data": {
+                    "id": "confirm_cw_notification"
+                }
+            }
+        ]
+    };
+    
+    var template = new ACData.Template(templatePayload);
+
+    
+    let context = new ACData.EvaluationContext();
+    context.$root = {
+        "companies": companies
+    };
+    
+    context.registerFunction(
+        "toString",
+        (input) => {
+            return input.toString();
+        }
+    )
+
+    let card_attach = {
+        "contentType": "application/vnd.microsoft.card.adaptive",
+        "content": template.expand(context)
+    }
+
+    let text = "<small>Please update your Webex Teams app to view this content.</small>";
+    await bot.reply(message, {markdown: text, attachments: card_attach});
+    await bot.deleteMessage({id: message.messageId });
+    
+}
+
+// Recieve confirmation from the user after they were sent a confirmation
+async function processConfirmCWNotifications(company_id, bot, message) {
+    // check if this notification already exists in Mongoose
+    var Notification = require('mongoose').model('Notification')
+    let notify = await Notification.find({ company_id: company_id })
+    
+    // get company object from CW
+    const ConnectWiseRest = require('connectwise-rest');
+    const cw = new ConnectWiseRest({
+        companyId: process.env.CW_COMPANY,
+        companyUrl: 'connectwise.deandorton.com',
+        clientId: process.env.CW_CLIENTID,
+        publicKey: process.env.CW_PUBLIC_KEY,
+        privateKey: process.env.CW_PRIVATE_KEY,
+        debug: false,               // optional, enable debug logging
+        logger: (level, text, meta) => { } // optional, pass in logging function
+    });
+    
+    try {
+        var company = await cw.CompanyAPI.Companies.getCompanyById(company_id);
+    } catch(e) {
+    
+        
+    }
+        
+    // if a notification already exists, do not allow another one to be created
+    let text;
+    if (notify.length) {
+        text = "A notification already exists for " + company.name + " in ";
+        
+        let room = await bot.api.rooms.get(notify[0].room_id);
+        text += room.title;
+        
+        if (room.teamId) {
+
+            let team = await bot.api.teams.get(room.teamId);
+            
+            text += " [" + team.name + "]";
+        }
+        
+    } else {
+        text = "Adding notification for " + company.name;
+    
+        let newNotify = new Notification({ company_id: company.id, room_id: message.channel});
+        newNotify.save();
+    }
+    
+    await bot.reply(message, {markdown: text});
+    await bot.deleteMessage({id: message.messageId });
+    
+}
+
+// Delete a given notification ID from Mongoose, and then respond to the message
+//   with a confirmation
+async function processDeleteCWNotifications(notification_id, bot, message) {
+    
+    // find notification to delete
+    var Notification = require('mongoose').model('Notification');
+    let notify = await Notification.findByIdAndRemove(notification_id);
+    
+    // create API connection to CW
+    const ConnectWiseRest = require('connectwise-rest');
+    const cw = new ConnectWiseRest({
+        companyId: process.env.CW_COMPANY,
+        companyUrl: 'connectwise.deandorton.com',
+        clientId: process.env.CW_CLIENTID,
+        publicKey: process.env.CW_PUBLIC_KEY,
+        privateKey: process.env.CW_PRIVATE_KEY,
+        debug: false,               // optional, enable debug logging
+        logger: (level, text, meta) => { } // optional, pass in logging function
+    });
+    
+    let name;
+    if (notify.company_id) {
+        let c = await cw.CompanyAPI.Companies.getCompanyById(notify.company_id);
+        
+        name = c.name;
+    // board fallback notification
+    } else if (notify.board_id) {
+        let b = await cw.ServiceDeskAPI.Boards.getBoardById(notify.board_id);
+        
+        name = "Fallback: Board " + b.name;
+    // global fallback notification
+    } else {
+
+        name = "Fallback: <em>All notifications</em>"
+    }
+    
+    let text = "Deleted notification for " + name;
+    await bot.reply(message,{markdown: text});
+    await bot.deleteMessage({id: message.messageId });
+    console.log("attachmentActions.js: processDeleteCWNotifications(): " + message.personEmail + " deleted notification for " + name);
 }
 
 async function processMVSnapshot(cameraSerial, bot, message) {
