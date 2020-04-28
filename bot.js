@@ -154,7 +154,7 @@ controller.webserver.post('/cw', async (req,res) => {
         return;
     }
 
-    let bot = await controller.spawn();
+    let bot = await controller.spawn(adapter);
     controller.trigger('ticket_webhook', bot, {ticketId, action});
     
 });
