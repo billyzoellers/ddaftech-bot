@@ -29,5 +29,20 @@ module.exports = {
         date.setHours(date.getHours() - 5);
         
         return df(date, "ddd, m/d/yy h:MM TT");
+    },
+    /* 
+     * formatStatus(status) -> takes 'status' as a string, and returns a better formated string
+     *
+     *      Input: (String)
+     *      Output: (String) with excess formatting removed
+     */
+    formatStatus: function (status) {
+        let str = status.replace('>','')
+        
+        if (status == "Customer Updated") {
+            return "Updated";
+        }
+        
+        return str;
     }
 }

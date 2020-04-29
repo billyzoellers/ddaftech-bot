@@ -26,7 +26,7 @@ module.exports = {
             let projectTickets = await cw.ServiceDeskAPI.Tickets.getTickets(params);
             
             //console.log(project);
-            console.log(projectTickets[0]);
+            //console.log(projectTickets[0]);
             
             let text = "Mobile version not yet implemented.";
             //let text = await module.exports.getTextMessageForProject(project,projectTickets);
@@ -65,7 +65,6 @@ module.exports = {
     */
     getAdaptiveCardForProject: async function(project,projectTickets,options) {
         const utility = require('../tools/utility');
-        const cwtools = require('../tools/connectwise');
             
         let card_body = [];
         
@@ -283,7 +282,7 @@ module.exports = {
                                 items: [
                                     {
                                         type: "TextBlock",
-                                        text: cwtools.formatStatus(projectTickets[i].status.name) + (projectTickets[i].owner ? " - Assigned to " + projectTickets[i].owner.name : "")
+                                        text: utility.formatStatus(projectTickets[i].status.name) + (projectTickets[i].owner ? " - Assigned to " + projectTickets[i].owner.name : "")
                                     }
                                 ]
                             },

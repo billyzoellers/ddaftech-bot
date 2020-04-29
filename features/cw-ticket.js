@@ -5,7 +5,7 @@
 
 module.exports = function(controller) {
     
-    const tools = require('../tools/connectwise');
+    const cwticket = require('../tools/cw-ticket');
 
     controller.on('ticket_webhook', async(bot, data) => {
         
@@ -16,7 +16,7 @@ module.exports = function(controller) {
         
         // get a message from Connectwise
         try {
-            var response = await tools.getMessageForTicket(ticketId, {action});
+            var response = await cwticket.getMessageForTicket(ticketId, {action});
         } catch (e) { return };
         
         let company_id = response.ticket.company.id;
@@ -71,7 +71,7 @@ module.exports = function(controller) {
         const util = require('util')
         
         try {
-            var response = await tools.getMessageForTicket(ticketId,{});
+            var response = await cwticket.getMessageForTicket(ticketId,{});
             
             // debug to see the card that would be attached
             // console.log(util.inspect(JSON.stringify(response.card_attach.content), false, null, true /* enable colors */))

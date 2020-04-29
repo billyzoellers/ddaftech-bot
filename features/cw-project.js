@@ -5,7 +5,6 @@
 
 module.exports = function(controller) {
     
-    const cwtools = require('../tools/connectwise');
     const cwproject = require('../tools/cw-project');
     const utility = require('../tools/utility');
 
@@ -39,7 +38,7 @@ module.exports = function(controller) {
             }
             
         } catch (e) {
-            console.error("cw-project.js: ERROR in cwtools.GetMessageForProject()");
+            console.error("cw-project.js: ERROR in cwproject.GetMessageForProject()");
             console.error(e);
             
             let text = "Sorry, I wasn't able to help with that. " + e.message + ".";

@@ -42,7 +42,7 @@ module.exports = function(controller) {
                 break;
             default:
                 // legacy CW stuff - need to sort better
-                const cwutil = require('../tools/connectwise');
+                const utility = require('../tools/utility');
         
                 console.log(message.inputs);
                 
@@ -159,7 +159,7 @@ module.exports = function(controller) {
                     responseText += "<br />";
                 }
                 if (updatedTicket) {
-                    responseText += "*changed status to " + cwutil.formatStatus(updatedTicket.status.name) + "*";
+                    responseText += "*changed status to " + utility.formatStatus(updatedTicket.status.name) + "*";
                 }
                 
                 try {

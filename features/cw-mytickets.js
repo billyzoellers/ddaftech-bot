@@ -5,7 +5,7 @@
 
 module.exports = function(controller) {
     
-    const tools = require('../tools/connectwise');
+    const utility = require('../tools/utility');
 
     controller.hears(new RegExp(/^\/cw mytickets(?:$|\s)($|\S+)/),'message,direct_message', async(bot, message) => {
         
@@ -192,7 +192,7 @@ module.exports = function(controller) {
                                 "items": [
                                     {
                                         "type": "TextBlock",
-                                        "text": tools.formatStatus(ticketList[i].status.name),
+                                        "text": utility.formatStatus(ticketList[i].status.name),
                                         "wrap": false,
                                         "weight": "Lighter",
                                         "size": "Small",
