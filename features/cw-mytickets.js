@@ -36,7 +36,7 @@ module.exports = function(controller) {
         var params = {
           "conditions": "owner/identifier='" + owner_identifier + "' AND status/name > '>Closed'",
           "orderby": "_info/lastUpdated desc",
-          "pageSize": "10"
+          "pageSize": "30"
         }
         
         try {
@@ -79,160 +79,199 @@ module.exports = function(controller) {
         }
         
         // Create the text version of the message
-        let text = "<small>This is the <em>mobile</em> version. For better formatting, use the Webex desktop or web client.</small><ul>"
+        let text = "Tickets list"
         
-        // Create  the Adaptive Card version of the message
-        let card_body = [];
-        // add footer
-        card_body.push({
-            "type": "Container",
-            "spacing": "Large",
-            "items": [
-                {
-                    "type": "TextBlock",
-                    "text": "Most Recently Updated " + ticketList.length + ( ticketCount.count > 10 ? " of " + ticketCount.count : "") + " tickets for " + owner_identifier,
-                    "size": "Small"
-                }
-            ],
-        });
+        // Use adaptive cards templating
+        var ACData = require("adaptivecards-templating");
         
-        // add comments heading       
-        card_body.push({
-            "type": "Container",
-            "spacing": "Large",
-            "style": "emphasis",
-            "items": [
+        // template for ServiceTicket
+        var templatePayload = {
+            "type": "AdaptiveCard",
+            "version": "1.1",
+            "body": [
                 {
-                    "type": "ColumnSet",
-                    "columns": [
+                    "type": "Container",
+                    "spacing": "Large",
+                    "items": [
                         {
-                            "type": "Column",
-                            "items": [
+                            "type": "TextBlock",
+                            "text": "Most Recently Updated {tickets.length} out of {allTicketsCount} tickets for {userName}",
+                            "size": "Small"
+                        }
+                    ],
+                },
+                {
+                    "type": "Container",
+                    "spacing": "Large",
+                    "style": "emphasis",
+                    "bleed": true,
+                    "items": [
+                        {
+                            "type": "ColumnSet",
+                            "columns": [
                                 {
-                                    "type": "TextBlock",
-                                    "weight": "Bolder",
-                                    "text": "ID"
+                                    "type": "Column",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "weight": "Bolder",
+                                            "text": "ID"
+                                        }
+                                    ],
+                                    "width": 10
+                                },
+                                {
+                                    "type": "Column",
+                                    "spacing": "Large",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "weight": "Bolder",
+                                            "text": "REQUESTER"
+                                        }
+                                    ],
+                                    "width": 75
+                                },
+                                {
+                                    "type": "Column",
+                                    "spacing": "Large",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "weight": "Bolder",
+                                            "text": "STATUS",
+                                            "horizontalAlignment": "Right"
+                                        }
+                                    ],
+                                    "width": 15
                                 }
-                            ],
-                            "width": 10
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Container",
+                    "style": "emphasis",
+                    "bleed": true,
+                    $data: "{tickets}",
+                    "items": [
+                        {
+                            "type": "ColumnSet",
+                            "spacing": "None",
+                            "columns": [
+                                {
+                                    "type": "Column",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text":  "#{toString(id)}",
+                                            "wrap": false,
+                                            "weight": "Lighter",
+                                            "size": "Small",
+                                            "color": "Accent"
+                                        }
+                                    ],
+                                    "width": 10
+                                },
+                                {
+                                    "type": "Column",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text": "[{contactName}]({contactEmailAddress}) at {shorten(company.name,33)}",
+                                            "wrap": false,
+                                            "weight": "Lighter",
+                                            "size": "Small"
+                                        }
+                                    ],
+                                    "width": 75
+                                },
+                                {
+                                    "type": "Column",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text": "{friendlyStatusName(status,0)}",
+                                            "wrap": false,
+                                            "weight": "Lighter",
+                                            "size": "Small",
+                                            "horizontalAlignment": "Right",
+                                            "color": "Accent"
+                                        }
+                                    ],
+                                    "width": 15
+                                }
+                            ]
                         },
                         {
-                            "type": "Column",
-                            "spacing": "Large",
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "weight": "Bolder",
-                                    "text": "REQUESTER"
-                                }
-                            ],
-                            "width": 75
-                        },
-                        {
-                            "type": "Column",
-                            "spacing": "Large",
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "weight": "Bolder",
-                                    "text": "STATUS",
-                                    "horizontalAlignment": "Right"
-                                }
-                            ],
-                            "width": 15
+                            "type": "TextBlock",
+                            "text": "{summary}",
+                            "wrap": false,
+                            "weight": "Lighter",
+                            "size": "Small"
                         }
                     ]
                 }
+                
+                
             ]
-        });
+        };
         
-        // create line for each ticket
-        for (let i = 0; i < ticketList.length; i++) {
-            // add to text version
-            text += "<li><strong>#" + ticketList[i].id.toString() + ":</strong> " + ticketList[i].summary + "</li>"
-            
-            // push to adaptive card
-            card_body.push({
-                "type": "Container",
-                "style": "emphasis",
-                "items": [
-                    {
-                        "type": "ColumnSet",
-                        "spacing": "None",
-                        "columns": [
-                            {
-                                "type": "Column",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "text":  "#" + ticketList[i].id.toString(),
-                                        "wrap": false,
-                                        "weight": "Lighter",
-                                        "size": "Small",
-                                        "color": "Accent"
-                                    }
-                                ],
-                                "width": 10
-                            },
-                            {
-                                "type": "Column",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "text": "[" + ticketList[i].contactName + "](" + ticketList[i].contactEmailAddress + ") at " +  ticketList[i].company.name.substring(0,33) +  ( ticketList[i].company.name.length > 33 ? "..." : ""),
-                                        "wrap": false,
-                                        "weight": "Lighter",
-                                        "size": "Small"
-                                    }
-                                ],
-                                "width": 75
-                            },
-                            {
-                                "type": "Column",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "text": utility.formatStatus(ticketList[i].status.name),
-                                        "wrap": false,
-                                        "weight": "Lighter",
-                                        "size": "Small",
-                                        "horizontalAlignment": "Right",
-                                        "color": "Accent"
-                                    }
-                                ],
-                                "width": 15
-                            }
-                        ]
-                    },
-                    {
-                        "type": "TextBlock",
-                        "text": ticketList[i].summary,
-                        "wrap": false,
-                        "weight": "Lighter",
-                        "size": "Small"
-                    }
-                ]
-            });
-            
-        }
+        var template = new ACData.Template(templatePayload);
         
-        text += "</ul>";
+        let context = new ACData.EvaluationContext();
+        context.$root = {
+            "tickets": ticketList,
+            "allTicketsCount": ticketCount.count,
+            "userName": owner_identifier
+        };
+        
+        context.registerFunction(
+          "friendlyStatusName",
+          (status,currentStatusId) => {
+              let text = status.name.replace('>','');
+              
+              if (status.id == currentStatusId) {
+                text += " (current status)";
+              }
 
-        // add headers to card before attaching
+              return text;
+          }
+        );
+        
+         context.registerFunction(
+            "toString",
+            (input) => {
+                return input.toString();
+            }
+        );
+        
+        context.registerFunction(
+            "toUpperCase",
+            (input) => {
+              return input.toUpperCase();
+            }
+        );
+        
+        context.registerFunction(
+            "shorten",
+            (string,length) => {
+                return string.substring(0,33) +  ( string.length > length ? "..." : "");
+            }
+        );
+
         let card_attach = {
             "contentType": "application/vnd.microsoft.card.adaptive",
-            "content": {
-                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.0",
-                "body": card_body
-            }
+            "content": template.expand(context)
         }
         
         if (process.env.DEBUG) {
             const util = require('util');
             console.log(util.inspect(JSON.stringify(card_attach.content), false, null, true /* enable colors */))
         }
+        
+        let length = text.length + JSON.stringify(card_attach).length;
+        console.log("/cw-mytickets.js: post length in chars " + length)
 
         try {
             await bot.reply(message, {markdown: text, attachments: card_attach});
