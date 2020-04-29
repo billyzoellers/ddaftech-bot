@@ -656,6 +656,14 @@ module.exports = {
                         ],
                         "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
                     }
+                },
+                {
+                    "type": "Action.Submit",
+                    "title": "Assign to Me",
+                    "data": {
+                        "id": "cw_ticket_assign_self",
+                        "ticketId": "{ticket.id}"
+                    }
                 }
             ]
         };

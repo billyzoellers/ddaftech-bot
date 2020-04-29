@@ -9,6 +9,12 @@ module.exports = function(controller) {
         console.log("attachmentActions.js: recieved an attachment action");
 
         switch(message.inputs.id) {
+            case 'cw_ticket_assign_self':
+                console.log("attachmentActions.js: for cw assign to self");
+                
+                await processCWTicketAssignSelf(message.inputs.ticketId, message.personId, bot, message);
+                
+                break;
             case 'submit_mv_list_info':
                 console.log("attachmentActions.js: for mv list info");
                 await processMVInfo(message.inputs.mv_list_serial, bot, message);
@@ -172,6 +178,93 @@ module.exports = function(controller) {
     });
 }
 
+// Take a ConnectWise ticket Id and Webex Teams person Id and assign the ticket
+//      to that person in ConnectWise
+async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
+    // create API connection to CW
+    const ConnectWiseRest = require('connectwise-rest');
+    const cw = new ConnectWiseRest({
+        companyId: process.env.CW_COMPANY,
+        companyUrl: 'connectwise.deandorton.com',
+        clientId: process.env.CW_CLIENTID,
+        publicKey: process.env.CW_PUBLIC_KEY,
+        privateKey: process.env.CW_PRIVATE_KEY,
+        debug: false,               // optional, enable debug logging
+        logger: (level, text, meta) => { } // optional, pass in logging function
+    });
+    
+    // match person in Webex to person in CW via email == username
+    let person = await bot.api.people.get(wtPersonId);
+    let member_ident = person.emails[0].split('@')[0];
+    try {
+        var cwPerson = await cw.SystemAPI.Members.getMemberByIdentifier(member_ident);
+        
+    }catch(e) {
+        console.log("attachmentAction.js: error finding ConnectWise member from identifier " + member_ident);
+        console.error(e);
+        
+        let text = "Sorry, I'm having trouble with that. It seems like you may not have permissions to post to ConnectWise. " + "<em> ";
+        text += e.message + " (" + e.code + ")</em>";
+        await bot.reply(message, {markdown: text});
+        
+        return;
+    }
+    
+    // Make API requests for ticket data
+    try {
+        var ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(cwTicketId);
+    }catch(e) {
+        console.log("cw-ticket.js: error on getTicketById with ticketId " + cwTicketId);
+        console.error(e);
+
+        throw(e);
+    }
+    
+    if (ticket.owner) {
+        let space = await bot.api.rooms.get(message.channel);
+        
+        let text = "";
+        if (space.type == 'group') {
+            text += "<@personId:" + person.id + "|" + person.nickName + ">, **t";
+        } else {
+            text += "**T";
+        }
+        text += "icket #" + cwTicketId + "** is already assigned to **" + ticket.owner.name +  "**.";
+        await bot.reply(message, {markdown: text});
+        console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " attmpted to self assign #" + cwTicketId + " but was already assigned in CW.");
+    } else {
+        // make API request to update ticket
+        try {
+    
+            let ops = [{
+                op: "replace",
+                path: "owner",
+                value: {
+                    id: cwPerson.id
+                }
+            }];
+            
+            await cw.ServiceDeskAPI.Tickets.updateTicket(Number(message.inputs.ticketId),ops);
+    
+        }catch(e) {
+            console.log("attachmentActions.js: error on updateTicket with ticketId " + cwTicketId);
+            console.error(e);
+    
+            let text = "Sorry, I'm having trouble with that." + "<em> ";
+            text += e.message + " (" + e.code + ")</em>";
+            await bot.reply(message, {markdown: text});
+            
+            return;
+        }
+        
+        let text = ">**" + person.displayName + "** has picked up **ticket #" + cwTicketId + "**.";
+        await bot.reply(message, {markdown: text});
+        console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " self assigned #" + cwTicketId);
+    }
+    
+    return;
+}
+
 // Find companys matching company_string and present them to the user for confirmation
 //      that they want a notification to be added
 async function processAddCWNotifications(company_string, bot, message) {
@@ -203,7 +296,7 @@ async function processAddCWNotifications(company_string, bot, message) {
     
     if (companies.length == 0) {
         let text = "I was not able to find a company named <em>" + company_string +"</em> in ConnectWise.";
-        bot.reply(message, {markdown: text});
+        await bot.reply(message, {markdown: text});
         
         return;
     }
