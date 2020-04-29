@@ -413,6 +413,255 @@ module.exports = {
             throw(e);
         }
         
+        // Make API request for status options
+        try {
+            let params = {
+              "orderby": "sortOrder asc",
+              "conditions": "inactive=false"
+            }
+            
+            var statuses = await cw.ServiceDeskAPI.Statuses.getStatusesByBoardId(ticket.board.id, params);
+        }catch(e) {
+            console.log("cw-ticket.js: error on getStatusesByBoardId with boardId " + ticket.board.id);
+            console.error(e);
+
+            throw(e);
+        }
+        
+        // Use adaptive cards templating
+        var ACData = require("adaptivecards-templating");
+        
+        // template for ServiceTicket
+        var templatePayload = {
+            "type": "AdaptiveCard",
+            "version": "1.1",
+            "body": [
+                {
+                    type: "Container",
+                    style: "{if(actionText, 'warning', 'emphasis')}",
+                    bleed: true,
+                    items: [
+                        {
+                            type: "ColumnSet",
+                            columns: [
+                                {
+                                    type: "Column",
+                                    items: [
+                                        {
+                                            type: "TextBlock",
+                                            size: "Medium",
+                                            weight: "Bolder",
+                                            text: "[{friendlyTicketType(ticket.recordType)} #{ticket.id}](https://connectwise.deandorton.com/v4_6_release/services/system_io/Service/fv_sr100_request.rails?service_recid={ticket.id}&companyName=ddaf)"
+                                        }
+                                    ],
+                                    width: "6"
+                                },
+                                {
+                                    type: "Column",
+                                    items: [
+                                        {
+                                            "type": "TextBlock",
+                                            "text": "{toUpperCase(actionText)}",
+                                            "size": "Medium",
+                                            "weight": "Bolder",
+                                            "color": "attention",
+                                            "horizontalAlignment": "Right"
+                                        }
+                                    ],
+                                    width: "2",
+                                    $when: "{actionText != ''}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: "TextBlock",
+                    size: "Large",
+                    text: "{ticket.summary}",
+                    wrap: true
+                },
+                {
+                    "type": "FactSet",
+                    "facts": [
+                        {
+                            "title": "Status",
+                            "value": "{friendlyStatusName(ticket.status)}"
+                        },
+                        {
+                            "title": "Requester",
+                            "value": "[{ticket.contactName}]({ticket.contactEmailAddress}) at {ticket.company.name}"
+                        },
+                        {
+                            "title": "Assigned to",
+                            "value": "{friendlyAssigneeName(ticket.owner,ticket.board)}"
+                        }
+                    ]
+                }
+                
+            ],
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Show notes",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "Container",
+                                "style": "emphasis",
+                                "items": [
+                                    {
+                                        "type": "ColumnSet",
+                                        "columns": [
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "weight": "Bolder",
+                                                        "text": "DATE/TIME"
+                                                    }
+                                                ],
+                                                "width": 40
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "spacing": "Large",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "weight": "Bolder",
+                                                        "text": "UPDATED BY"
+                                                    }
+                                                ],
+                                                "width": 60
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "Container",
+                                "$data": "{ticketNotes}",
+                                "separator": true,
+                                "items": [
+                                    {
+                                        "type": "ColumnSet",
+                                        "columns": [
+                                            {
+                                                "type": "Column",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "text":  "{friendlyDate(dateCreated)}",
+                                                        "wrap": true,
+                                                        "weight": "Bolder"
+                                                    }
+                                                ],
+                                                "width": 40
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "spacing": "Medium",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "text": "{friendlyNoteName($data)}",
+                                                        "wrap": true,
+                                                        "weight": "Bolder"
+                                                    }
+                                                ],
+                                                "width": 60
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "{text}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    },
+                    "$when": "{ticketNotes.length > 0}"
+                },
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Add comment",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "Input.Text",
+                                "id": "cw_add_comment",
+                                "placeholder": "Add your comment..",
+                                "isMultiline": true
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_comment_visibility",
+                                                "choices": [
+                                                    {
+                                                        "title": "Public (send to client)",
+                                                        "value": "public"
+                                                    },
+                                                    {
+                                                        "title": "Private",
+                                                        "value": "private"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "Input.ChoiceSet",
+                                                "id": "cw_new_status_id",
+                                                "value": "{toString($root.ticket.status.id)}",
+                                                "choices": [
+                                                    {
+                                                        "$data": "{statusOptions}",
+                                                        "title": "{friendlyStatusName($data,$root.ticket.status.id)}",
+                                                        "value": "{toString(id)}"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.Submit",
+                                "title": "Send",
+                                "data": {
+                                    "id": "submit_cw_add_comment",
+                                    "ticketId": "{ticket.id}",
+                                    "cw_current_status_id": "{status.id}"
+                                }
+                            }
+                        ],
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    }
+                }
+            ]
+        };
+        
+        var template = new ACData.Template(templatePayload);
+        
         var actionText;
         if (action) {
             
@@ -423,11 +672,9 @@ module.exports = {
               case 'added':
                 actionText = "New";
                 break;
-              default:
-                actionText = action;
             }
         }
-        
+
         // "ServiceTicket" to "Service Ticket"
         let ticketTypeText = ticket.recordType.replace(/([A-Z])/g, ' $1').trim()
         
@@ -444,268 +691,100 @@ module.exports = {
             
             card_attach = await module.exports.getAdaptiveCardForProjectTicket(cw,ticket,serviceNotes,options);
         } else {
-    
-            // Create  the Adaptive Card version of the message
-            let card_body = [];
-            let history_body = [];
+            // generate card for non-ProjectTicket
+            let context = new ACData.EvaluationContext();
+            context.$root = {
+                "actionText": actionText,
+                "ticket": ticket,
+                "ticketNotes": serviceNotes,
+                "statusOptions": statuses
+            };
             
-            if (action) {
-                
-                card_body.push({
-                    "type": "Container",
-                    "items": [
-                        {
-                            "type": "TextBlock",
-                            "text": actionText.toUpperCase() + " " + ticketTypeText.toUpperCase(),
-                            "size": "Large",
-                            "weight": "Bolder",
-                            "color": "attention"
-                        }
-                    ]
-                });
-            }
-            
-            // add title container
-            card_body.push({
-                "type": "Container",
-                "style": "emphasis",
-                "items": [
-                    {
-                        "type": "TextBlock",
-                        "text": "Ticket #" + ticket.id +  " - " + ticket.summary,
-                        "size": "Large",
-                        "weight": "Bolder"
-                    }
-                ]
-            });
-    
-            // add ticket details
-            card_body.push({
-                "type": "FactSet",
-                "facts": [
-                    {
-                        "title": "Status",
-                        "value": ticket.status.name.replace('>','')
-                    },
-                    {
-                        "title": "Requester",
-                        "value": "[" + ticket.contactName + "](" + ticket.contactEmailAddress + ") at " +  ticket.company.name
-                    },
-                    {
-                        "title": "Assigned to",
-                        "value": module.exports.returnTicketAssignee(ticket)
-                    }
-                ]
-            });
-            
-            // add comments heading       
-            history_body.push({
-                "type": "Container",
-                "style": "emphasis",
-                "items": [
-                    {
-                        "type": "ColumnSet",
-                        "columns": [
-                            {
-                                "type": "Column",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "weight": "Bolder",
-                                        "text": "DATE/TIME"
-                                    }
-                                ],
-                                "width": 40
-                            },
-                            {
-                                "type": "Column",
-                                "spacing": "Large",
-                                "items": [
-                                    {
-                                        "type": "TextBlock",
-                                        "weight": "Bolder",
-                                        "text": "UPDATED BY"
-                                    }
-                                ],
-                                "width": 60
-                            }
-                        ]
-                    }
-                ]
-            });
-
-            for (let i = 0; i < serviceNotes.length; i++) {
-                // create a note block if note has text
-
-                if (serviceNotes[i].text) {
-                    history_body.push({
-                        "type": "Container",
-                        "separator": (i > 0 ? true : false), // separator on all subsequent lines
-                        "items": [
-                            {
-                                "type": "ColumnSet",
-                                "columns": [
-                                    {
-                                        "type": "Column",
-                                        "items": [
-                                            {
-                                                "type": "TextBlock",
-                                                "text":  utility.date_string_format_long_with_time(serviceNotes[i].dateCreated),
-                                                "wrap": true,
-                                                "weight": "Bolder"
-                                            }
-                                        ],
-                                        "width": 40
-                                    },
-                                    {
-                                        "type": "Column",
-                                        "spacing": "Medium",
-                                        "items": [
-                                            {
-                                                "type": "TextBlock",
-                                                "text": module.exports.returnNoteName(serviceNotes[i]) + (serviceNotes[i].internalAnalysisFlag ? " [Internal Note]" : ""),
-                                                "wrap": true,
-                                                "weight": "Bolder"
-                                            }
-                                        ],
-                                        "width": 60
-                                    }
-                                ]
-                            },
-                            {
-                                "type": "TextBlock",
-                                "text": serviceNotes[i].text
-                            }
-                        ]
-                    });
+            context.registerFunction(
+                "friendlyDate",
+                (input) => {
+                    return utility.date_string_format_long_with_time(input);
                 }
-            }
+            );
             
-            let status_choices = [];
-            // Make API request for status options
-            try {
-                let params = {
-                  "orderby": "sortOrder asc",
-                  "conditions": "inactive=false"
+            context.registerFunction(
+                "friendlyTicketType",
+                (input) => {
+                    return input.replace(/([A-Z])/g, ' $1').trim();
                 }
-                
-                var statuses = await cw.ServiceDeskAPI.Statuses.getStatusesByBoardId(ticket.board.id, params);
-            }catch(e) {
-                console.log("cw-ticket.js: error on getStatusesByBoardId with boardId " + ticket.board.id);
-                console.error(e);
-    
-                throw(e);
-            }
-    
-            for (let i = 0; i < statuses.length; i++) {
-                
-                if (statuses[i].id == ticket.status.id) {
-                    // current status
-                    status_choices.push({
-                        "title": statuses[i].name.replace('>','') + " (current status)",
-                        "value": statuses[i].id.toString()
-                    })
+            );
+            
+            context.registerFunction(
+                "friendlyNoteName",
+                (input) => {
+                    let text = "";
+
+                    if (input.contact) {
+                        text += input.contact.name;
+                    } else if (input.member) {
+                        text += input.member.name;
+                    } else {
+                        text += "Unspecified Name";
+                    }
                     
-                } else {
-                    status_choices.push({
-                        "title": statuses[i].name.replace('>',''),
-                        "value": statuses[i].id.toString()
-                    })
-                }
-            }
-            
-            let card_actions = [];
-            
-            if (serviceNotes.length) {
-                card_actions.push({
-                    "type": "Action.ShowCard",
-                    "title": "Show notes",
-                    "card": {
-                        "type": "AdaptiveCard",
-                        "body": history_body,
-                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    if (input.internalAnalysisFlag) {
+                        text += " [Internal Note]";
                     }
-                });
-            }
-            
-            card_actions.push({
-                "type": "Action.ShowCard",
-                "title": "Add comment",
-                "card": {
-                    "type": "AdaptiveCard",
-                    "body": [
-                        {
-                            "type": "Input.Text",
-                            "id": "cw_add_comment",
-                            "placeholder": "Add your comment..",
-                            "isMultiline": true
-                        },
-                        {
-                            "type": "ColumnSet",
-                            "columns": [
-                                {
-                                    "type": "Column",
-                                    "width": "stretch",
-                                    "items": [
-                                        {
-                                            "type": "Input.ChoiceSet",
-                                            "id": "cw_comment_visibility",
-                                            "choices": [
-                                                {
-                                                    "title": "Public (send to client)",
-                                                    "value": "public"
-                                                },
-                                                {
-                                                    "title": "Private",
-                                                    "value": "private"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "Column",
-                                    "width": "stretch",
-                                    "items": [
-                                        {
-                                            "type": "Input.ChoiceSet",
-                                            "id": "cw_new_status_id",
-                                            "value": ticket.status.id.toString(),
-                                            "choices": status_choices
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ],
-                    "actions": [
-                        {
-                            "type": "Action.Submit",
-                            "title": "Send",
-                            "data": {
-                                "id": "submit_cw_add_comment",
-                                "ticketId": ticket.id,
-                                "cw_current_status_id": ticket.status.id
-                            }
-                        }
-                    ],
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                    
+                    return text;
                 }
-            });
+            );
+            
+            context.registerFunction(
+                "friendlyAssigneeName",
+                (owner,board) => {
+                    let text = "";
+        
+                    if (owner && !(owner.name == "undefined")) {
+                        text += owner.name + " ";
+                    }
+                    
+                    if (board) {
+                        text += "[" + board.name + "]";
+                    }
+                    
+                    return text;
+                }
+            );
+            
+            context.registerFunction(
+              "friendlyStatusName",
+              (status,currentStatusId) => {
+                  let text = status.name.replace('>','');
                   
-            // add headers to card before attaching
+                  if (status.id == currentStatusId) {
+                    text += " (current status)";
+                  }
+
+                  return text;
+              }
+            );
+            
+             context.registerFunction(
+                "toString",
+                (input) => {
+                    return input.toString();
+                }
+            );
+            
+            context.registerFunction(
+                "toUpperCase",
+                (input) => {
+                  return input.toUpperCase();
+                }
+            );
+    
             card_attach = {
                 "contentType": "application/vnd.microsoft.card.adaptive",
-                "content": {
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                    "type": "AdaptiveCard",
-                    "version": "1.1",
-                    "body": card_body,
-                    "actions": card_actions
-                }
+                "content": template.expand(context)
             }
         }
-        
+
         // total length of data being posted to webex
         let length = text.length + JSON.stringify(card_attach).length;
         console.log("/connectwise.js: post length in chars " + length)
