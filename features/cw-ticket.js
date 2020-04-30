@@ -25,40 +25,45 @@ module.exports = function(controller) {
         
         console.log("CompanyId: " + company_id + " " + response.ticket.company.name + " BoardId: " + board_id + " " + response.ticket.board.name + " StatusId: " + status_id + " " + response.ticket.status.name);
 
-        /* DB search
-         * 
-         */
-        var Notification = require('mongoose').model('Notification')
-        let roomId = null;
-        let searchParam = [];
-        
-        searchParam[0] = { company_id: company_id };
-        searchParam[1] = { company_id: null, board_id: board_id };
-        searchParam[2] = { company_id: null, board_id: null };
-        
-        for (let i = 0; i < searchParam.length && !roomId; i++) { 
-            let search = await Notification.find(searchParam[i]);
+        // do not send message for tickets in closed or assigned status
+        if (response.ticket.status.name == "Assigned" || response.ticket.status.name == ">Closed") {
+            console.log("/cw-ticket.js: ticket status is " + response.ticket.status.name +", not sending message");
+
+        } else {
+            /* DB search
+             * 
+             */
+            var Notification = require('mongoose').model('Notification')
+            let roomId = null;
+            let searchParam = [];
             
-            if (search.length == 1) {
-                console.log("/cw-ticket.js: matched CompanyId " + searchParam[i].company_id + " BoardId " + searchParam[i].board_id);
-                roomId = search[0].room_id;
+            searchParam[0] = { company_id: company_id };
+            searchParam[1] = { company_id: null, board_id: board_id };
+            searchParam[2] = { company_id: null, board_id: null };
+            
+            for (let i = 0; i < searchParam.length && !roomId; i++) { 
+                let search = await Notification.find(searchParam[i]);
+                
+                if (search.length == 1) {
+                    console.log("/cw-ticket.js: matched CompanyId " + searchParam[i].company_id + " BoardId " + searchParam[i].board_id);
+                    roomId = search[0].room_id;
+                }
+            }
+            
+            if (!roomId) {
+                console.log("/cw-ticket.js: no match for Notification, not sending message");
+                return;
+            }
+    
+            await bot.startConversationInRoom(roomId);
+        
+            // send the message
+            try {
+                await bot.say({markdown: response.text, attachments: response.card_attach})
+            } catch(e) {
+                console.error(e);
             }
         }
-        
-        if (!roomId) {
-            console.log("/cw-ticket.js: no match for Notification, not sending message");
-            return;
-        }
-
-        await bot.startConversationInRoom(roomId);
-    
-        // send the message
-        try {
-            await bot.say({markdown: response.text, attachments: response.card_attach})
-        } catch(e) {
-            console.error(e);
-        }
-        
         
     });
 
