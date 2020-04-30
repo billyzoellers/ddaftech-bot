@@ -79,7 +79,7 @@ module.exports = function(controller) {
         }
         
         // Create the text version of the message
-        let text = "Tickets list"
+        let text = "Most Recently Updated " + ticketList.length + " out of " + ticketCount.count + " tickets for " + owner_identifier
         
         // Use adaptive cards templating
         var ACData = require("adaptivecards-templating");
