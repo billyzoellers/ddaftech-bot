@@ -181,6 +181,8 @@ module.exports = function(controller) {
 // Take a ConnectWise ticket Id and Webex Teams person Id and assign the ticket
 //      to that person in ConnectWise
 async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
+    console.log("attachmentActions.js: processCWTicketAssignSelf(): Processing for cwTicketId " + cwTicketId + " and wtPersonId " + wtPersonId);
+    
     // create API connection to CW
     const ConnectWiseRest = require('connectwise-rest');
     const cw = new ConnectWiseRest({
@@ -198,6 +200,7 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
     let member_ident = person.emails[0].split('@')[0];
     try {
         var cwPerson = await cw.SystemAPI.Members.getMemberByIdentifier(member_ident);
+        console.log("attachmentActions.js: processCWTicketAssignSelf(): found cwPerson " + cwPerson + " from member_ident " + member_ident);
         
     }catch(e) {
         console.log("attachmentAction.js: error finding ConnectWise member from identifier " + member_ident);
@@ -213,6 +216,8 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
     // Make API requests for ticket data
     try {
         var ticket = await cw.ServiceDeskAPI.Tickets.getTicketById(cwTicketId);
+        console.log("attachmentActions.js: processCWTicketAssignSelf(): got ticket with id " + ticket.id);
+        
     }catch(e) {
         console.log("cw-ticket.js: error on getTicketById with ticketId " + cwTicketId);
         console.error(e);
@@ -262,6 +267,7 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
         console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " self assigned #" + cwTicketId);
     }
     
+    console.log("attachmentActions.js: processCWTicketAssignSelf(): Completed for cwTicketId " + cwTicketId);
     return;
 }
 
