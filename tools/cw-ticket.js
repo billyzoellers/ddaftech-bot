@@ -245,9 +245,13 @@ module.exports = {
                                         ]
                                     },
                                     {
-                                        "type": "TextBlock",
-                                        "text": "{text}",
-                                        "wrap": true
+                                        "type": "RichTextBlock",
+                                        "inlines": [
+                                            {
+                                                "type": "TextRun",
+                                                "text": "{text}"
+                                            }    
+                                        ]
                                     }
                                 ]
                             }
