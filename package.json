@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "adaptivecards-templating": "^0.1.1-alpha.1",
-    "botbuilder-adapter-webex": "^1.0.7",
+    "botbuilder-adapter-webex": "^1.0.8",
     "botbuilder-storage-mongodb": "^0.9.5",
-    "botkit": "^4.8.1",
+    "botkit": "^4.9.0",
     "botkit-plugin-cms": "^1.0.3",
     "connectwise-rest": "^0.23.3",
     "connectwise-rest-api": "^1.2.1",
