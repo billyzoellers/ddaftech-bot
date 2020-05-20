@@ -246,7 +246,8 @@ module.exports = {
                                     },
                                     {
                                         "type": "TextBlock",
-                                        "text": "{text}"
+                                        "text": "{text}",
+                                        "wrap": true
                                     }
                                 ]
                             }
