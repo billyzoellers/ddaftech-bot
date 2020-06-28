@@ -11,7 +11,6 @@ module.exports = function(controller) {
         switch(message.inputs.id) {
             case 'cw_ticket_assign_self':
                 console.log("attachmentActions.js: for cw assign to self");
-                
                 await processCWTicketAssignSelf(message.inputs.ticketId, message.personId, bot, message);
                 
                 break;
@@ -163,11 +162,21 @@ module.exports = function(controller) {
                 }
                 
                 try {
-                    // send new message
-                    await bot.reply(message, {markdown: responseText});
-                    
-                    // delete the parent message (aka remove the form)
-                    //await bot.deleteMessage({id: message.messageId});
+                    /* TODO:
+                        message.id is the Id of the attachmentAction form response
+                        message.messageId is the Id of the form that triggered the attachmentAction
+                        message.parentId will never exist on an attachmentAction
+                        
+                        To respond appropriately:
+                          get the full body of the form that triggered the attachmentAction (realMessage) from API
+                          set message.id to the Id of realMessage
+                          set message.parentId to the parentId of realMessage
+                    */
+                    let realMessage = await bot.api.messages.get(message.messageId);
+                    message.id = realMessage.id;
+                    message.parentId = realMessage.parentId;
+
+                    await bot.replyInThread(message, {markdown: responseText});
                 } catch(e) {
                     console.error(e);
                 }
@@ -236,11 +245,21 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
         }
         text += "icket #" + cwTicketId + "** is already assigned to **" + ticket.owner.name +  "**.";
         
-        // TODO: figure out the 'right' way to do this, or if an edit to the adapter is needed
-        let m = message;
-        m.id = message.messageId;
+        /* TODO:
+            message.id is the Id of the attachmentAction form response
+            message.messageId is the Id of the form that triggered the attachmentAction
+            message.parentId will never exist on an attachmentAction
+            
+            To respond appropriately:
+              get the full body of the form that triggered the attachmentAction (realMessage) from API
+              set message.id to the Id of realMessage
+              set message.parentId to the parentId of realMessage
+        */
+        let realMessage = await bot.api.messages.get(message.messageId);
+        message.id = realMessage.id;
+        message.parentId = realMessage.parentId;
         
-        await bot.replyInThread(m, {markdown: text});
+        await bot.replyInThread(message, {markdown: text});
         console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " attmpted to self assign #" + cwTicketId + " but was already assigned in CW.");
     } else {
         // make API request to update ticket
@@ -268,6 +287,20 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
         }
         
         let text = ">**" + person.displayName + "** has picked up **ticket #" + cwTicketId + "**.";
+        /* TODO:
+            message.id is the Id of the attachmentAction form response
+            message.messageId is the Id of the form that triggered the attachmentAction
+            message.parentId will never exist on an attachmentAction
+            
+            To respond appropriately:
+              get the full body of the form that triggered the attachmentAction (realMessage) from API
+              set message.id to the Id of realMessage
+              set message.parentId to the parentId of realMessage
+        */
+        let realMessage = await bot.api.messages.get(message.messageId);
+        message.id = realMessage.id;
+        message.parentId = realMessage.parentId;
+
         await bot.replyInThread(message, {markdown: text});
         console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " self assigned #" + cwTicketId);
     }

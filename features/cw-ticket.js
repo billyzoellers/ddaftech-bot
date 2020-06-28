@@ -91,12 +91,7 @@ module.exports = function(controller) {
         
         // send the message
         try {
-            // TODO: how should this be handled?
-            if (message.parentId) {
-                await bot.replyInThread(message, {markdown: response.text, attachments: response.card_attach});
-            } else {
-                await bot.reply(message, {markdown: response.text, attachments: response.card_attach});
-            }
+            await bot.replyInThread(message, {markdown: response.text, attachments: response.card_attach});
             
         } catch(e) {
             console.error(e);
