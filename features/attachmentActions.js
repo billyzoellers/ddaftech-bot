@@ -208,7 +208,7 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
         
         let text = "Sorry, I'm having trouble with that. It seems like you may not have permissions to post to ConnectWise. " + "<em> ";
         text += e.message + " (" + e.code + ")</em>";
-        await bot.reply(message, {markdown: text});
+        await bot.replyInThread(message, {markdown: text});
         
         return;
     }
@@ -235,7 +235,12 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
             text += "**T";
         }
         text += "icket #" + cwTicketId + "** is already assigned to **" + ticket.owner.name +  "**.";
-        await bot.reply(message, {markdown: text});
+        
+        // TODO: figure out the 'right' way to do this, or if an edit to the adapter is needed
+        let m = message;
+        m.id = message.messageId;
+        
+        await bot.replyInThread(m, {markdown: text});
         console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " attmpted to self assign #" + cwTicketId + " but was already assigned in CW.");
     } else {
         // make API request to update ticket
@@ -257,13 +262,13 @@ async function processCWTicketAssignSelf(cwTicketId, wtPersonId, bot, message) {
     
             let text = "Sorry, I'm having trouble with that." + "<em> ";
             text += e.message + " (" + e.code + ")</em>";
-            await bot.reply(message, {markdown: text});
+            await bot.replyInThread(message, {markdown: text});
             
             return;
         }
         
         let text = ">**" + person.displayName + "** has picked up **ticket #" + cwTicketId + "**.";
-        await bot.reply(message, {markdown: text});
+        await bot.replyInThread(message, {markdown: text});
         console.log("attachmentActions.js: processCWTicketAssignSelf() " + person.displayName + " self assigned #" + cwTicketId);
     }
     
