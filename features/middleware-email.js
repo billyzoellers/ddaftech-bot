@@ -19,7 +19,7 @@ module.exports = (controller) => {
     next();
   });
 
-  controller.on('external_user_message', async(bot, message) => {
+  controller.on('external_user_message', async (bot, message) => {
     const text = 'Sorry, I am only available for the technology team.';
     await bot.reply(message, text);
   });
