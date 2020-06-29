@@ -15,8 +15,9 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    "no-console": "off",
-    "no-use-before-define": ["error", { "functions": false }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^bot$" }]
+    'no-console': 'off',
+    'no-use-before-define': ['error', { functions: false }],
+    'no-unused-vars': ['error', { argsIgnorePattern: '^bot$' }],
+    'no-underscore-dangle': ['error', { allow: ['_id'] }],
   },
 };
