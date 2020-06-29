@@ -488,8 +488,27 @@ async function processMVSnapshot(cameraSerial, bot, message) {
     serial: cameraSerial,
   };
 
-  const url = await meraki.CamerasController.generateNetworkCameraSnapshot(input);
-  const videoLinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
+  let url;
+  try {
+    url = await meraki.CamerasController.generateNetworkCameraSnapshot(input);
+    console.log(`attachmentActions.js: processMVSnapshot(): got snapshot URL for ${cameraSerial}`);
+  } catch (e) {
+    console.error(`attachmentActions.js: processMVSnapshot(): unable to get snapshot URL for ${cameraSerial}`);
+    console.error(e);
+    const text = `Sorry, I wasn't able to contact the camera to get a snapshot. <em>${e.message} (${e.code})</em>`;
+    await bot.reply(message, { markdown: text });
+
+    return;
+  }
+
+  let videoLinkUrl;
+  try {
+    videoLinkUrl = await meraki.CamerasController.getNetworkCameraVideoLink(input);
+    console.log(`attachmentActions.js: processMVSnapshot(): got video link URL for ${cameraSerial}`);
+  } catch (e) {
+    console.error(`attachmentActions.js: processMVSnapshot(): unable to get video link URL for ${cameraSerial}`);
+    console.error(e);
+  }
 
   const tempMessage = await bot.reply(message, { markdown: 'Please wait about `5 seconds` while I locate your snapshot..' });
   await bot.deleteMessage({ id: message.messageId });
