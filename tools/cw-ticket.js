@@ -250,6 +250,7 @@ module.exports = {
                         text: '{text}',
                       },
                     ],
+                    $when: '{text}',
                   },
                 ],
               },
