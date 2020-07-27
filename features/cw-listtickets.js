@@ -6,7 +6,7 @@ const ConnectWiseRest = require('connectwise-rest');
 const util = require('util');
 const mongoose = require('mongoose');
 
-const actemplates = require('./lib/actemplates');
+const actemplates = require('../lib/actemplates');
 
 module.exports = (controller) => {
   controller.hears(new RegExp(/^\/cw tickets(?:$|\s)($|\S+)/), 'message,direct_message', async (bot, message) => {

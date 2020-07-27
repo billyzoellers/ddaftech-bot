@@ -5,7 +5,7 @@
 const ConnectWiseRest = require('connectwise-rest');
 const mongoose = require('mongoose');
 
-const actemplates = require('./lib/actemplates');
+const actemplates = require('../lib/actemplates');
 
 module.exports = (controller) => {
   controller.hears('/cw notifications', 'message', async (bot, message) => {
