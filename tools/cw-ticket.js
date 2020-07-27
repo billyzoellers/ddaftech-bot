@@ -250,7 +250,7 @@ module.exports = {
                         text: '{text}',
                       },
                     ],
-                    $when: '{text}',
+                    $when: '{text != \'\'}',
                   },
                 ],
               },
