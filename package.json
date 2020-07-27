@@ -20,11 +20,11 @@
     "dotenv": "^7.0.0",
     "ipinfo": "^1.3.9",
     "meraki": "^1.5.0",
-    "mongoose": "^5.9.20",
+    "mongoose": "^5.9.25",
     "node-meraki": "^5.12.1"
   },
   "devDependencies": {
-    "eslint": "^7.3.1",
+    "eslint": "^7.5.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.0"
   }
