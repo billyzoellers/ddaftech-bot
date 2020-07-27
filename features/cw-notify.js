@@ -2,96 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const ACData = require('adaptivecards-templating');
 const ConnectWiseRest = require('connectwise-rest');
 const mongoose = require('mongoose');
 
+const actemplates = require('./lib/actemplates');
+
 module.exports = (controller) => {
   controller.hears('/cw notifications', 'message', async (bot, message) => {
-    const templatePayload = {
-      type: 'AdaptiveCard',
-      version: '1.1',
-      body: [
-        {
-          type: 'TextBlock',
-          size: 'Medium',
-          weight: 'Bolder',
-          text: 'Notifications for \'{spaceName}\'',
-        },
-        {
-          type: 'FactSet',
-          facts: [
-            {
-              $data: '{currentNotifications}',
-              title: '{key}:',
-              value: '{value}',
-            },
-          ],
-          $when: '{currentNotifications.length > 0}',
-        },
-      ],
-      actions: [
-        {
-          type: 'Action.ShowCard',
-          title: 'New',
-          card: {
-            type: 'AdaptiveCard',
-            body: [
-              {
-                type: 'Input.Text',
-                id: 'company_name',
-                placeholder: 'Company Name',
-              },
-            ],
-            actions: [
-              {
-                type: 'Action.Submit',
-                title: 'Add',
-                data: {
-                  id: 'add_cw_notification',
-                },
-              },
-            ],
-            $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-          },
-        },
-        {
-          type: 'Action.ShowCard',
-          title: 'Edit',
-          card: {
-            type: 'AdaptiveCard',
-            body: [
-              {
-                type: 'Input.ChoiceSet',
-                placeholder: 'select camera',
-                choices: [
-                  {
-                    $data: '{currentNotifications}',
-                    title: '{value}',
-                    value: '{id}',
-                  },
-                ],
-                id: 'cw_notifications_edit',
-              },
-            ],
-            actions: [
-              {
-                type: 'Action.Submit',
-                title: 'Delete',
-                data: {
-                  id: 'delete_cw_notification',
-                },
-              },
-            ],
-            $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
-          },
-          $when: '{currentNotifications.length > 0}',
-        },
-      ],
-    };
-
-    const template = new ACData.Template(templatePayload);
-
     // create API connection to CW
     const cw = new ConnectWiseRest({
       companyId: process.env.CW_COMPANY,
@@ -141,11 +58,12 @@ module.exports = (controller) => {
 
     const thisRoom = await bot.api.rooms.get(message.channel);
 
-    const context = new ACData.EvaluationContext();
-    context.$root = {
+    // apply adaptive card template
+    const template = actemplates.acTemplate(actemplates.addRemoveNotification);
+    const context = actemplates.acEvaluationContext({
       spaceName: thisRoom.title,
       currentNotifications,
-    };
+    });
 
     const cardAttach = {
       contentType: 'application/vnd.microsoft.card.adaptive',

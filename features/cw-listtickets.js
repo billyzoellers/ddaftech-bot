@@ -3,9 +3,10 @@
  * Licensed under the MIT License.
  */
 const ConnectWiseRest = require('connectwise-rest');
-const ACData = require('adaptivecards-templating');
 const util = require('util');
 const mongoose = require('mongoose');
+
+const actemplates = require('./lib/actemplates');
 
 module.exports = (controller) => {
   controller.hears(new RegExp(/^\/cw tickets(?:$|\s)($|\S+)/), 'message,direct_message', async (bot, message) => {
@@ -93,183 +94,13 @@ module.exports = (controller) => {
     // Create the text version of the message
     const text = `Most Recently Updated ${ticketList.length} out of ${ticketCount.count} tickets for ${company.name}`;
 
-    // template for ServiceTicket
-    const templatePayload = {
-      type: 'AdaptiveCard',
-      version: '1.1',
-      body: [
-        {
-          type: 'Container',
-          spacing: 'Large',
-          items: [
-            {
-              type: 'TextBlock',
-              text: 'Most Recently Created {tickets.length} out of {allTicketsCount} tickets for {forEntity}',
-              size: 'Small',
-            },
-          ],
-        },
-        {
-          type: 'Container',
-          spacing: 'Large',
-          style: 'emphasis',
-          bleed: true,
-          items: [
-            {
-              type: 'ColumnSet',
-              columns: [
-                {
-                  type: 'Column',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      weight: 'Bolder',
-                      text: 'ID',
-                    },
-                  ],
-                  width: 10,
-                },
-                {
-                  type: 'Column',
-                  spacing: 'Large',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      weight: 'Bolder',
-                      text: 'REQUESTER',
-                    },
-                  ],
-                  width: 75,
-                },
-                {
-                  type: 'Column',
-                  spacing: 'Large',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      weight: 'Bolder',
-                      text: 'STATUS',
-                      horizontalAlignment: 'Right',
-                    },
-                  ],
-                  width: 15,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'Container',
-          style: 'emphasis',
-          bleed: true,
-          $data: '{tickets}',
-          items: [
-            {
-              type: 'ColumnSet',
-              spacing: 'None',
-              columns: [
-                {
-                  type: 'Column',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      text: '#{toString(id)}',
-                      wrap: false,
-                      weight: 'Lighter',
-                      size: 'Small',
-                      color: 'Accent',
-                    },
-                  ],
-                  width: 10,
-                },
-                {
-                  type: 'Column',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      text: '[{contactName}]({contactEmailAddress}) at {shorten(company.name,33)}',
-                      wrap: false,
-                      weight: 'Lighter',
-                      size: 'Small',
-                    },
-                  ],
-                  width: 75,
-                },
-                {
-                  type: 'Column',
-                  items: [
-                    {
-                      type: 'TextBlock',
-                      text: '{friendlyStatusName(status,0)}',
-                      wrap: false,
-                      weight: 'Lighter',
-                      size: 'Small',
-                      horizontalAlignment: 'Right',
-                      color: 'Accent',
-                    },
-                  ],
-                  width: 15,
-                },
-              ],
-            },
-            {
-              type: 'TextBlock',
-              text: '{summary}{projectName(project.name)}',
-              wrap: false,
-              weight: 'Lighter',
-              size: 'Small',
-            },
-          ],
-        },
-      ],
-    };
-
-    const template = new ACData.Template(templatePayload);
-    const context = new ACData.EvaluationContext();
-    context.$root = {
+    // apply adaptive card template
+    const template = actemplates.acTemplate(actemplates.ticketList);
+    const context = actemplates.acEvaluationContext({
       tickets: ticketList,
       allTicketsCount: ticketCount.count,
       forEntity: company.name,
-    };
-
-    context.registerFunction(
-      'friendlyStatusName',
-      (status, currentStatusId) => {
-        let txt = status.name.replace('>', '');
-
-        if (status.id === currentStatusId) {
-          txt += ' (current status)';
-        }
-
-        return txt;
-      },
-    );
-
-    context.registerFunction(
-      'toString',
-      (input) => input.toString(),
-    );
-
-    context.registerFunction(
-      'projectName',
-      (input) => {
-        if (input) {
-          return ` - Project: ${input}`;
-        }
-
-        return '';
-      },
-    );
-
-    context.registerFunction(
-      'toUpperCase',
-      (input) => input.toUpperCase(),
-    );
-
-    context.registerFunction(
-      'shorten',
-      (string, length) => string.substring(0, 33) + (string.length > length ? '...' : ''),
-    );
+    });
 
     const cardAttach = {
       contentType: 'application/vnd.microsoft.card.adaptive',
