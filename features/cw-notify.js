@@ -5,7 +5,7 @@
 const ConnectWiseRest = require('connectwise-rest');
 const mongoose = require('mongoose');
 
-const actemplates = require('../lib/actemplates');
+const cards = require('../lib/cards');
 
 module.exports = (controller) => {
   controller.hears('/cw notifications', 'message', async (bot, message) => {
@@ -58,20 +58,19 @@ module.exports = (controller) => {
 
     const thisRoom = await bot.api.rooms.get(message.channel);
 
-    // apply adaptive card template
-    const template = actemplates.acTemplate(actemplates.addRemoveNotification);
-    const context = actemplates.acEvaluationContext({
+    // Create 'list of tickets' card
+    const template = cards.template(cards.notification_addremove);
+    const context = cards.context({
       spaceName: thisRoom.title,
       currentNotifications,
     });
-
-    const cardAttach = {
+    const card = {
       contentType: 'application/vnd.microsoft.card.adaptive',
       content: template.expand(context),
     };
 
     const text = `List of notifications for '${thisRoom.title}'`;
-    await bot.reply(message, { markdown: text, attachments: cardAttach });
+    await bot.reply(message, { markdown: text, attachments: card });
 
   // controller
   });
