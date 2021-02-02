@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const meraki = require('meraki');
 
 const utility = require('../tools/utility');
+const cards = require('../lib/cards');
 
 module.exports = (controller) => {
   controller.on('attachmentActions', async (bot, message) => {
@@ -564,44 +565,11 @@ async function processMVInfo(cameraSerial, bot, message) {
     console.log(e);
   }
 
-  const templatePayload = {
-    type: 'AdaptiveCard',
-    version: '1.1',
-    body: [
-      {
-        type: 'TextBlock',
-        size: 'Medium',
-        weight: 'Bolder',
-        text: '{title}',
-      },
-      {
-        type: 'FactSet',
-        facts: [
-          {
-            $data: '{properties}',
-            title: '{key}:',
-            value: '{value}',
-          },
-        ],
-      },
-    ],
-    actions: [
-      {
-        type: 'Action.Submit',
-        title: 'Snapshot',
-        data: {
-          id: 'submit_mv_list_snapshot',
-          mv_list_serial: device.serial,
-        },
-      },
-    ],
-  };
-
-  const template = new ACData.Template(templatePayload);
-
-  const context = new ACData.EvaluationContext();
-  context.$root = {
+  // Create 'MV info' card
+  const template = cards.template(cards.merakimv_info);
+  const context = cards.context({
     title: device.name,
+    serial: device.serial,
     properties: [
       {
         key: 'Model',
@@ -628,15 +596,14 @@ async function processMVInfo(cameraSerial, bot, message) {
         value: device.address,
       },
     ],
-  };
-
-  const cardAttach = {
+  });
+  const card = {
     contentType: 'application/vnd.microsoft.card.adaptive',
     content: template.expand(context),
   };
 
   const text = '<small>Please update your Webex Teams app to view this content.</small>';
-  await bot.reply(message, { markdown: text, attachments: cardAttach });
+  await bot.reply(message, { markdown: text, attachments: card });
   await bot.deleteMessage({ id: message.messageId });
 }
 

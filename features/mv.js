@@ -4,50 +4,10 @@
  */
 const ACData = require('adaptivecards-templating');
 const meraki = require('meraki');
+const cards = require('../lib/cards');
 
 module.exports = (controller) => {
   controller.hears('/mv', 'message,direct_message', async (bot, message) => {
-    const templatePayload = {
-      type: 'AdaptiveCard',
-      version: '1.1',
-      body: [
-        {
-          type: 'TextBlock',
-          text: '{description}',
-        },
-        {
-          type: 'Input.ChoiceSet',
-          placeholder: 'select camera',
-          choices: [
-            {
-              $data: '{cameras}',
-              title: '{name}',
-              value: '{serial}',
-            },
-          ],
-          id: 'mv_list_serial',
-        },
-      ],
-      actions: [
-        {
-          type: 'Action.Submit',
-          title: 'Snapshot',
-          data: {
-            id: 'submit_mv_list_snapshot',
-          },
-        },
-        {
-          type: 'Action.Submit',
-          title: 'More Info',
-          data: {
-            id: 'submit_mv_list_info',
-          },
-        },
-      ],
-    };
-
-    const template = new ACData.Template(templatePayload);
-
     // Connect to Meraki API
     const configuration = meraki.Configuration;
     configuration.xCiscoMerakiAPIKey = process.env.MERAKI_TOKEN;
@@ -59,19 +19,19 @@ module.exports = (controller) => {
     try {
       const cameraList = await meraki.DevicesController.getNetworkDevices(networkId);
 
-      const context = new ACData.EvaluationContext();
-      context.$root = {
+      // Create 'select MV' card
+      const template = cards.template(cards.merakimv_select);
+      const context = cards.context({
         description: 'Please select a camera',
         cameras: cameraList,
-      };
-
-      const cardAttach = {
+      });
+      const card = {
         contentType: 'application/vnd.microsoft.card.adaptive',
         content: template.expand(context),
       };
 
       const text = '<small>Please update your Webex Teams app to view this content.</small>';
-      await bot.reply(message, { markdown: text, attachments: cardAttach });
+      await bot.reply(message, { markdown: text, attachments: card });
 
       console.log('meraki-listcameras.js: Meraki API call success');
     } catch (e) {
