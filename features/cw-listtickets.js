@@ -3,10 +3,8 @@
  * Licensed under the MIT License.
  */
 const ConnectWiseRest = require('connectwise-rest');
-const util = require('util');
 const mongoose = require('mongoose');
-
-const actemplates = require('../lib/actemplates');
+const cards = require('../lib/cards');
 
 module.exports = (controller) => {
   controller.hears(new RegExp(/^\/cw tickets(?:$|\s)($|\S+)/), 'message,direct_message', async (bot, message) => {
@@ -94,28 +92,20 @@ module.exports = (controller) => {
     // Create the text version of the message
     const text = `Most Recently Updated ${ticketList.length} out of ${ticketCount.count} tickets for ${company.name}`;
 
-    // apply adaptive card template
-    const template = actemplates.acTemplate(actemplates.ticketList);
-    const context = actemplates.acEvaluationContext({
+    // Create 'list of tickets' card
+    const template = cards.template(cards.ticket_list);
+    const context = cards.context({
       tickets: ticketList,
       allTicketsCount: ticketCount.count,
       forEntity: company.name,
     });
-
-    const cardAttach = {
+    const card = {
       contentType: 'application/vnd.microsoft.card.adaptive',
       content: template.expand(context),
     };
 
-    if (process.env.DEBUG) {
-      console.log(util.inspect(JSON.stringify(cardAttach.content), false, null, true /* colors */));
-    }
-
-    const length = text.length + JSON.stringify(cardAttach).length;
-    console.log(`/cw-listtickets.js: post length in chars ${length}`);
-
     try {
-      await bot.reply(message, { markdown: text, attachments: cardAttach });
+      await bot.reply(message, { markdown: text, attachments: card });
     } catch (e) {
       console.error(e);
     }
