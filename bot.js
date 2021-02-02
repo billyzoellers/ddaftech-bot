@@ -7,7 +7,6 @@
 // Import Botkit features
 const { Botkit } = require('botkit');
 const { WebexAdapter } = require('botbuilder-adapter-webex');
-const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 
 // Other required features
 const ConnectWiseRest = require('connectwise-rest');
@@ -15,13 +14,6 @@ const mongoose = require('mongoose');
 
 // Load process.env values from .env file
 require('dotenv').config();
-
-let storage = null;
-if (process.env.MONGO_URL) {
-  storage = new MongoDbStorage({
-    url: process.env.MONGO_URL,
-  });
-}
 
 const adapter = new WebexAdapter({
   secret: process.env.SECRET,
@@ -51,7 +43,6 @@ db.once('open', () => {
 const controller = new Botkit({
   webhook_uri: '/api/messages',
   adapter,
-  storage,
 });
 
 // Once the bot has booted up its internal services, you can use them to do stuff.
