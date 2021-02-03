@@ -84,11 +84,16 @@ controller.webserver.post('/cw', async (req, res) => {
   });
 
   // if signature matches in callback
-  if (await cw.utils.Callback.verifyCallback(callback, callbackXContentSignature) === false) {
-    console.error('POST /cw webhook ERROR unable to verify. Request below');
-    console.log(req);
+  try {
+    if (await cw.utils.Callback.verifyCallback(callback, callbackXContentSignature) === false) {
+      console.error('POST /cw webhook ERROR unable to verify. Request below');
+      console.log(req);
 
-    return;
+      return;
+    }
+  } catch (e) {
+    console.log('POST /cw webhook ERROR in verifyCallback()');
+    console.error(e);
   }
 
   if (callback.FromUrl !== 'connectwise.deandorton.com') {
