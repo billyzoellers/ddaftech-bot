@@ -58,7 +58,7 @@ module.exports = (controller) => {
 
       // send the message
       try {
-        await bot.say({ markdown: response.text, attachments: response.cardAttach });
+        await bot.say({ markdown: response.text, attachments: response.card });
       } catch (e) {
         console.error(e);
       }
@@ -72,9 +72,6 @@ module.exports = (controller) => {
     let response;
     try {
       response = await cwticket.getMessageForTicket(ticketId, {});
-
-      // debug to see the card that would be attached
-      // console.log(util.inspect(JSON.stringify(response.cardAttach.content), false, null, true ))
     } catch (e) {
       console.log('cw-ticket.js: error in tools.GetMessageForTicket()');
 
@@ -85,7 +82,7 @@ module.exports = (controller) => {
 
     // send the message
     try {
-      await bot.replyInThread(message, { markdown: response.text, attachments: response.cardAttach }); // eslint-disable-line max-len
+      await bot.replyInThread(message, { markdown: response.text, attachments: response.card }); // eslint-disable-line max-len
     } catch (e) {
       console.error(e);
     }
