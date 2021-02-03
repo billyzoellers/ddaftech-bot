@@ -22,7 +22,7 @@ module.exports = (controller) => {
     // find notifications for this space
     const Notification = mongoose.model('Notification');
     const notify = await Notification.find({ room_id: message.channel });
-
+    console.log(`cw-notify.js: found ${notify.length} notifications for room ${message.channel}`);
     // Get friendly names for companies via CW and Teams API
     const currentNotifications = [];
     for (let i = 0; i < notify.length; i += 1) {
