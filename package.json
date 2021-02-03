@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "adaptive-expressions": "^4.11.1",
-    "adaptivecards-templating": "^1.4.0",
+    "adaptivecards-templating": "^2.0.0",
     "botbuilder-adapter-webex": "^1.0.9",
     "botkit": "^4.10.0",
     "botkit-plugin-cms": "^1.0.3",
@@ -20,7 +20,7 @@
     "dotenv": "^8.2.0",
     "ipinfo": "^1.5.1",
     "meraki": "^1.5.0",
-    "mongoose": "^5.11.14",
+    "mongoose": "^5.11.15",
     "node-meraki": "^5.12.1"
   },
   "devDependencies": {

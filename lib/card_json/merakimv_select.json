@@ -1,0 +1,39 @@
+{
+  "type": "AdaptiveCard",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "${description}"
+    },
+    {
+      "type": "Input.ChoiceSet",
+      "placeholder": "select camera",
+      "choices": [
+        {
+          "$data": "${cameras}",
+          "title": "${name}",
+          "value": "${serial}"
+        }
+      ],
+      "id": "mv_list_serial"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Snapshot",
+      "data": {
+        "id": "submit_mv_list_snapshot"
+      }
+    },
+    {
+      "type": "Action.Submit",
+      "title": "More Info",
+      "data": {
+        "id": "submit_mv_list_info"
+      }
+    }
+  ],
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.1"
+}
