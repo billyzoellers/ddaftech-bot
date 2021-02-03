@@ -3,19 +3,10 @@
  * Methods related to CW projects
  */
 
-const utility = require('./utility');
 const cards = require('../lib/cards');
 
 module.exports = {
 
-  /*
-    *
-    *
-    *
-    *
-    *
-    *
-    */
   getMessageForProject: async (cw, projectId) => {
     // Make API requests for ticket data
     try {
@@ -30,8 +21,17 @@ module.exports = {
       // console.log(project);
       // console.log(projectTickets[0]);
 
-      const text = await module.exports.getTextMessageForProject(project, projectTickets);
-      const card = await module.exports.getAdaptiveCardForProject(project, projectTickets);
+      const text = `Project #${project.id}: ${project.name}`;
+      // Create 'Project Ticket' card
+      const template = cards.template(cards.project_ticket);
+      const context = cards.context({
+        project,
+        projectTickets,
+      });
+      const card = {
+        contentType: 'application/vnd.microsoft.card.adaptive',
+        content: template.expand(context),
+      };
 
       return { text, card };
     } catch (e) {
@@ -40,40 +40,5 @@ module.exports = {
 
       throw (e);
     }
-  },
-  /*
-  *
-  *
-  *
-  *
-  *
-  *
-  */
-  getTextMessageForProject: async (project) => {
-    const text = `Project #${project.id}: ${project.name}`;
-
-    return text;
-  },
-  /*
-  *
-  *
-  *
-  *
-  *
-  *
-  */
-  getAdaptiveCardForProject: async (project, projectTickets) => {
-    // Create 'Project Ticket' card
-    const template = cards.template(cards.project_ticket);
-    const context = cards.context({
-      project,
-      projectTickets,
-    });
-    const card = {
-      contentType: 'application/vnd.microsoft.card.adaptive',
-      content: template.expand(context),
-    };
-
-    return card;
   },
 };
