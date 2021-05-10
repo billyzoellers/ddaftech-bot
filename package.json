@@ -9,22 +9,22 @@
     "lint": "eslint \"./**/*.js\""
   },
   "dependencies": {
-    "adaptive-expressions": "^4.11.1",
-    "adaptivecards-templating": "^2.0.0",
+    "adaptive-expressions": "^4.13.1",
+    "adaptivecards-templating": "^2.1.0",
     "botbuilder-adapter-webex": "^1.0.9",
     "botkit": "^4.10.0",
     "botkit-plugin-cms": "^1.0.3",
     "connectwise-rest": "^0.24.0",
     "connectwise-rest-api": "^1.2.1",
     "dateformat": "^4.5.1",
-    "dotenv": "^8.2.0",
+    "dotenv": "^9.0.2",
     "ipinfo": "^1.5.1",
     "meraki": "^1.5.0",
-    "mongoose": "^5.11.15",
-    "node-meraki": "^5.12.1"
+    "mongoose": "^5.12.8",
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
-    "eslint": "^7.19.0",
+    "eslint": "^7.26.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1"
   }
